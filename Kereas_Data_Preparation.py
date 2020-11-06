@@ -29,72 +29,73 @@ def TrainTestSets(DFdata, SplitIndicator):
 def PrepareDataForANN(DataDF, DependentVar, IndependentVar, DummyForCol,
                       SplitDataInd):
     
-    DataDFin = DataDF.copy().loc[:, [DependentVar] + IndependentVar]
+    DataDF__IN = DataDF.copy().loc[:, [DependentVar] + IndependentVar]
     
-    
-    DataDFin = pd.get_dummies(DataDFin, columns=[DummyForCol],\
+    # CREATE DUMMY VARIABLES FOR SELECTED COLUMNS
+    DataDF__IN = pd.get_dummies(DataDF__IN, columns=[DummyForCol],\
                                 prefix=[DummyForCol+'_'], drop_first=True )
         
         
     ### SPLIT INTO INPUT DEPENDENT AND INDEPANEDNT VARIABLES
-    DataDFin_y = DataDFin.loc[:, [DependentVar] ]
-    DataDFin_X = DataDFin.drop(columns= [DependentVar] )
+    DataDF_y__IN = DataDF__IN.loc[:, [DependentVar] ]
+    DataDF_X__IN = DataDF__IN.drop(columns= [DependentVar] )
      
           
     ### DIVIDE INTO TRAIN, VALIDATION AND TEST SETS
-    TrainDFin_y, TestDFin_y = TrainTestSets(DataDFin_y, SplitDataInd[1])
-    TrainDFin_y, ValDFin_y  = TrainTestSets(TrainDFin_y, SplitDataInd[0])
+    TrainDF_y__IN, TestDF_y__IN = TrainTestSets(DataDF_y__IN, SplitDataInd[1])
+    TrainDF_y__IN, ValDF_y__IN  = TrainTestSets(TrainDF_y__IN, SplitDataInd[0])
 
-    TrainDFin_X, TestDFin_X = TrainTestSets(DataDFin_X, SplitDataInd[1])
-    TrainDFin_X, ValDFin_X  = TrainTestSets(TrainDFin_X, SplitDataInd[0])
+    TrainDF_X__IN, TestDF_X__IN = TrainTestSets(DataDF_X__IN, SplitDataInd[1])
+    TrainDF_X__IN, ValDF_X__IN  = TrainTestSets(TrainDF_X__IN, SplitDataInd[0])
 
 
     ### SCALE DATA
     # Fit scaler on Train Set
     
-    scalerIn_IndepVars = MinMaxScaler(feature_range=(0, 1))
-    scalerIn_DepVar    = MinMaxScaler(feature_range=(0, 1))
+    scaler_IndepVars__IN = MinMaxScaler(feature_range=(0, 1))
+    scaler_DepVar__IN    = MinMaxScaler(feature_range=(0, 1))
 
-    scalerIn_IndepVars = scalerIn_IndepVars.fit(TrainDFin_X)    
-    scalerIn_DepVar    = scalerIn_DepVar.fit(TrainDFin_y)
+    scaler_IndepVars__IN = scaler_IndepVars__IN.fit(TrainDF_X__IN)    
+    scaler_DepVar__IN    = scaler_DepVar__IN.fit(TrainDF_y__IN)
 
     # Transform train    
-    TrainIN_X_sld = scalerIn_IndepVars.transform(TrainDFin_X)
-    TrainIN_y_sld = scalerIn_DepVar.transform(TrainDFin_y)
+    Train_X_sld__IN = scaler_IndepVars__IN.transform(TrainDF_X__IN)
+    Train_y_sld__IN = scaler_DepVar__IN.transform(TrainDF_y__IN)
     # Transform valid    
-    ValIN_X_sld = scalerIn_IndepVars.transform(ValDFin_X)
-    ValIN_y_sld = scalerIn_DepVar.transform(ValDFin_y)    
+    Val_X_sld__IN = scaler_IndepVars__IN.transform(ValDF_X__IN)
+    Val_y_sld__IN = scaler_DepVar__IN.transform(ValDF_y__IN)    
     # Transform test    
-    TestIN_X_sld = scalerIn_IndepVars.transform(TestDFin_X)
-    TestIN_y_sld = scalerIn_DepVar.transform(TestDFin_y)
+    Test_X_sld__IN = scaler_IndepVars__IN.transform(TestDF_X__IN)
+    Test_y_sld__IN = scaler_DepVar__IN.transform(TestDF_y__IN)
     
-    # After scaling data stracture is array
+    # CONVERT TO DataFrames
+    # After scaling data stracture is array, so
     # Create DataFrame with colNames                                
-    TrainDFin_X_sld = pd.DataFrame(TrainIN_X_sld,\
-                                   index   = TrainDFin_X.index,\
-                                   columns = TrainDFin_X.columns)
-    TrainDFin_y_sld = pd.DataFrame(TrainIN_y_sld,\
-                                   index   = TrainDFin_y.index,\
-                                   columns = TrainDFin_y.columns)   
+    TrainDF_X_sld__IN = pd.DataFrame(Train_X_sld__IN,\
+                                     index   = TrainDF_X__IN.index,\
+                                     columns = TrainDF_X__IN.columns)
+    TrainDF_y_sld__IN = pd.DataFrame(Train_y_sld__IN,\
+                                     index   = TrainDF_y__IN.index,\
+                                     columns = TrainDF_y__IN.columns)   
 
-    ValDFin_X_sld = pd.DataFrame(ValIN_X_sld,\
-                                   index   = ValDFin_X.index,\
-                                   columns = ValDFin_X.columns)
-    ValDFin_y_sld = pd.DataFrame(ValIN_y_sld,\
-                                 index   = ValDFin_y.index,\
-                                 columns = ValDFin_y.columns)
+    ValDF_X_sld__IN = pd.DataFrame(Val_X_sld__IN,\
+                                   index   = ValDF_X__IN.index,\
+                                   columns = ValDF_X__IN.columns)
+    ValDF_y_sld__IN = pd.DataFrame(Val_y_sld__IN,\
+                                   index   = ValDF_y__IN.index,\
+                                   columns = ValDF_y__IN.columns)
         
-    TestDFin_X_sld = pd.DataFrame(TestIN_X_sld,\
-                                  index   = TestDFin_X.index,\
-                                  columns = TestDFin_X.columns)
-    TestDFin_y_sld = pd.DataFrame(TestIN_y_sld,\
-                                  index   = TestDFin_y.index,\
-                                  columns = TestDFin_y.columns) 
+    TestDF_X_sld__IN = pd.DataFrame(Test_X_sld__IN,\
+                                    index   = TestDF_X__IN.index,\
+                                    columns = TestDF_X__IN.columns)
+    TestDF_y_sld__IN = pd.DataFrame(Test_y_sld__IN,\
+                                    index   = TestDF_y__IN.index,\
+                                    columns = TestDF_y__IN.columns) 
         
-    return (TrainDFin_X_sld, TrainDFin_y_sld,\
-            ValDFin_X_sld, ValDFin_y_sld,\
-            TestDFin_X_sld, TestDFin_y_sld,\
-            scalerIn_DepVar)
+    return (TrainDF_X_sld__IN, TrainDF_y_sld__IN,\
+            ValDF_X_sld__IN, ValDF_y_sld__IN,\
+            TestDF_X_sld__IN, TestDF_y_sld__IN,\
+            scaler_IndepVars__IN, scaler_DepVar__IN)
         
         
         
