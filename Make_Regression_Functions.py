@@ -3,57 +3,174 @@ import pandas as pd
 
 ######################################################################
 
-def MakePrediction(Model,\
-                   Train_X_Scaled, Val_X_Scaled, Test_X_Scaled,\
-                   Scaler_DependVar, MainDF, SplitDataInd):
+def MakeTSforecast(Data_X, Model, DependentVar,
+                   Intecept = False,
+                   LagsList = None,
+                   Scaler_y = None, Scaler_X = None,
+                   Test_or_Forecast = 'Test'):
+    
+    
+    DF_X = Data_X.copy()
+    if Intecept:
+        DF_X = sm.add_constant(DF_X)
+       #DF_X.insert(0, 'const',  1.0)
+        
+    # Select Laged Variable which are based on Dependent Variable
+    y_LagsList = []
+    
+    if LagsList is not None:
+        y_LagsList = { VarLag:LagNr  for VarLag, LagNr in LagsList.items()\
+                          if re.sub(r'_Lag.+', '', VarLag) == DependentVar }
+    
+    # Make iterative prediction when Dependent Variable has lags:
+    if len(y_LagsList) > 0:
+        
+        yhat = []
+        
+        for step in range(len(DF_X)):
+    
+            DF_X_CurrentStep = DF_X.iloc[[step],:]
+            yhat_CurrentStep = Model.predict(DF_X_CurrentStep)[0]
+            yhat.append(yhat_CurrentStep)
+
+            for VarName, LagNr in y_LagsList.items():                
+                if step + LagNr < len(DF_X):
+                    DF_X.iloc[ step + LagNr,\
+                               DF_X.columns.to_list().index(VarName) ] =\
+                                yhat_CurrentStep                       
+    else:        
+        yhat = Model.predict(DF_X)
+
+             
+    # Make Revers Scaling on Obtained Results:
+    if Scaler_y is not None:      
+        yhat  = Scaler_y.inverse_transform(yhat)
+        DF_X  = Scaler_X.inverse_transform(DF_X)
+    
+    # Make DF from yhat:
+    Index = Data_X.index.to_frame()
+    yhat_DF  = pd.DataFrame(yhat,\
+                                 index = Index.index,\
+                                 columns = [f'Predicted-{Test_or_Forecast}'])
+    
+    
+    return (yhat_DF, DF_X)
+  
+############################################################################################
+  
+def MakeANNfinalData(Model,\
+                     Train_X_Scaled, Val_X_Scaled,\
+                     Scaler_y,\
+                     MainDF,\
+                     yhat_Test_DF = None,\
+                     yhat_Forecast_DF = None):
     
     #  Train_X_Scaled, Val_X_Scaled, Test_X_Scaled should be shaped when RNN is used  
     
-    # Input to Model should be numpy array ??
-    # If DF convert to numpy array
-    if isinstance(Train_X_Scaled, (pd.DataFrame)):
-        Train_X_Scaled__IN = Train_X_Scaled.values    
-        Val_X_Scaled__IN   = Val_X_Scaled.values         
-        Test_X_Scaled__IN  = Test_X_Scaled.values         
-    elif isinstance(Train_X_Scaled, (np.ndarray)):    
-        Train_X_Scaled__IN = Train_X_Scaled.copy()
-        Val_X_Scaled__IN   = Val_X_Scaled.copy()    
-        Test_X_Scaled__IN  = Test_X_Scaled.copy()
-    
+    MainDF_WithModeledData = MainDF.copy()    
         
     # Take fitted data and make a prediction
-    Train_yhat_sld__IN = Model.predict(Train_X_Scaled__IN)
-    Val_yhat_sld__IN   = Model.predict(Val_X_Scaled__IN)
-    Test_yhat_sld__IN  = Model.predict(Test_X_Scaled__IN)        
+    yhat_Train_sld = Model.predict(Train_X_Scaled)
+    yhat_Val_sld   = Model.predict(Val_X_Scaled)
     
     # INVERT SCALING
-    Train_yhat__IN = Scaler_DependVar.inverse_transform(Train_yhat_sld__IN)
-    Val_yhat__IN   = Scaler_DependVar.inverse_transform(Val_yhat_sld__IN)
-    Test_yhat__IN  = Scaler_DependVar.inverse_transform(Test_yhat_sld__IN)
-    
+    yhat_Train = Scaler_y.inverse_transform(yhat_Train_sld)
+    yhat_Val   = Scaler_y.inverse_transform(yhat_Val_sld)
+  
     
     ### MERGE Fitted and Predicted Data to Main DataFrame
     
-    # Take Index of Train, Val and Test sets   
-    Index__IN = MainDF.index.to_frame()
-    Train_Index__IN, Test_Index__IN = TrainTestSets(Index__IN, SplitDataInd[1])
-    Train_Index__IN, Val_Index__IN  = TrainTestSets(Train_Index__IN, SplitDataInd[0])
-
     # Make DataFrames from yhat:
-    Train_yhat_DF__IN = pd.DataFrame(Train_yhat__IN,\
-                                     index = Train_Index__IN.index,\
+    yhat_Train_DF = pd.DataFrame(yhat_Train,\
+                                     index = Train_X_Scaled.index,\
                                      columns = ['Fitted-Train'])
-    Val_yhat_DF__IN   = pd.DataFrame(Val_yhat__IN,\
-                                     index = Val_Index__IN.index,\
+    yhat_Val_DF   = pd.DataFrame(yhat_Val,\
+                                     index = Val_X_Scaled.index,\
                                      columns = ['Fitted-Validation'])
-    Test_yhat_DF__IN  = pd.DataFrame(Test_yhat__IN,\
-                                     index = Test_Index__IN.index,\
-                                     columns = ['Predicted-Test'])
+        
     
     # Merge MainDF with yhats
-    MainDF_WithModelData__IN = MainDF.copy()\
-                      .merge(Train_yhat_DF__IN, how='left', on='Date')\
-                      .merge(Val_yhat_DF__IN,   how='left', on='Date')\
-                      .merge(Test_yhat_DF__IN,  how='left', on='Date')
+    MainDF_WithModeledData = MainDF_WithModeledData\
+                      .merge(yhat_Train_DF, how='left', on='Date')\
+                      .merge(yhat_Val_DF,   how='left', on='Date')
                       
-    return MainDF_WithModelData__IN
+    if yhat_Test_DF is not None:
+        
+        yhat_Test_DF__IN = yhat_Test_DF.copy()        
+        yhat_Test_DF__IN.columns.values[0] = 'Predicted-Test'        
+        MainDF_WithModeledData = MainDF_WithModeledData\
+                      .merge(yhat_Test_DF__IN,  how='left', on='Date')
+
+    if yhat_Forecast_DF is not None:
+        
+        yhat_Forecast_DF__IN = yhat_Forecast_DF.copy()
+        yhat_Forecast_DF__IN.columns.values[0] = 'Forecast'
+        MainDF_WithModeledData = pd.concat( [MainDF_WithModeledData,\
+                                               yhat_Forecast_DF__IN] )
+                      
+                      
+    return MainDF_WithModeledData
+
+
+#########################################################
+
+def MakeFinalDataFull(Model,\
+                      Train_X_Scaled, Val_X_Scaled,\
+                      Scaler_y,\
+                      MainDF,\
+                      TestSplitInd, ValSplitInd,\ 
+                      yhat_Test_DF = None,\
+                      yhat_Forecast_DF = None):
+    
+    #  Train_X_Scaled, Val_X_Scaled, Test_X_Scaled should be shaped when RNN is used  
+    
+    MainDF_WithModeledData = MainDF.copy()    
+        
+    # Take fitted data and make a prediction
+    yhat_Train_sld = Model.predict(Train_X_Scaled)
+    yhat_Val_sld   = Model.predict(Val_X_Scaled)
+    
+    # INVERT SCALING
+    yhat_Train = Scaler_y.inverse_transform(yhat_Train_sld)
+    yhat_Val   = Scaler_y.inverse_transform(yhat_Val_sld)
+  
+    
+    ### MERGE Fitted and Predicted Data to Main DataFrame
+    
+    # Take Index of Train, Val and Test sets 
+    Index__MainDF = MainDF_WithModeledData.index.to_frame()
+    Index_Train, Index_Test = TrainTestSets(Index__MainDF, TestSplitInd)
+    Index_Train, Index_Val  = TrainTestSets(Index_Train, ValSplitInd)
+
+    # Make DataFrames from yhat:
+    yhat_Train_DF = pd.DataFrame(yhat_Train,\
+                                     index = Index_Train.index,\
+                                     columns = ['Fitted-Train'])
+    yhat_Val_DF   = pd.DataFrame(yhat_Val,\
+                                     index = Index_Val.index,\
+                                     columns = ['Fitted-Validation'])
+        
+    
+    # Merge MainDF with yhats
+    MainDF_WithModeledData = MainDF_WithModeledData\
+                              .merge(yhat_Train_DF, how='left', on='Date')\
+                              .merge(yhat_Val_DF,   how='left', on='Date')
+                      
+    if yhat_Test_DF is not None:
+        
+        yhat_Test_DF__IN = yhat_Test_DF.copy()        
+        yhat_Test_DF__IN.columns.values[0] = 'Predicted-Test'        
+        MainDF_WithModeledData = MainDF_WithModeledData\
+                      .merge(yhat_Test_DF__IN,  how='left', on='Date')
+
+    if yhat_Forecast_DF is not None:
+        
+        yhat_Forecast_DF__IN = yhat_Forecast_DF.copy()
+        yhat_Forecast_DF__IN.columns.values[0] = 'Forecast'
+        MainDF_WithModeledData = pd.concat( [MainDF_WithModeledData,\
+                                               yhat_Forecast_DF__IN] )
+                      
+                      
+    return MainDF_WithModeledData
+  
+############################################################################
