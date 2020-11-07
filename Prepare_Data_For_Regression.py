@@ -29,6 +29,21 @@ def TrainTestSets(DFdata, SplitIndicator):
 #########################################################
 
 
+def ScaleThenConvertArrayToDF(BasicDF, Scaler):
+    
+    BasicArray_sld = Scaler.transform(BasicDF)
+    
+    # convert to DataFrames becouse After scaling data stracture is array
+    BasicDF_sld = pd.DataFrame(BasicArray_sld,\
+                               index   = BasicDF.index,\
+                               columns = BasicDF.columns)
+            
+    return BasicDF_sld
+
+
+#########################################################
+
+
 def PrepareDataForRegression(DataDF, DependentVar, IndependentVar,\
                              TestSplitInd, \
                              ValSplitInd = None,\
