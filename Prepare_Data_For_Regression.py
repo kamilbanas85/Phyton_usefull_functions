@@ -3,9 +3,12 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
+import datetime
+import re
 
 
-############################################################################################
+#########################################################
+
 
 def TrainTestSets(DFdata, SplitIndicator):
     
@@ -23,43 +26,22 @@ def TrainTestSets(DFdata, SplitIndicator):
     return (DFdataTrain, DFdataTest)
 
 
-############################################################################################
+#########################################################
 
-def ScaleThenConvertArrayToDF(BasicDF, Scaler):
-    
-    BasicArray_sld = Scaler.transform(BasicDF)
-    
-    # convert to DataFrames becouse After scaling data stracture is array
-    BasicDF_sld = pd.DataFrame(BasicArray_sld,\
-                               index   = BasicDF.index,\
-                               columns = BasicDF.columns)
-            
-    return BasicDF_sld
-
-
-###############################################
 
 def PrepareDataForRegression(DataDF, DependentVar, IndependentVar,\
-                             SplitDataIndicator, 
-                             DummyForCol = None,
-                             ScalerType = None,
+                             TestSplitInd, \
+                             ValSplitInd = None,\
+                             DummyForCol = None,\
+                             ScalerType = None,\
                              ScalerRange = (0,1)):
-    # SplitDataIndicator <- list
+
     # DependentVar <- str, IndependentVar <- list of str
     # ScalerType <- 'MinMax' or 'Standard'
     # ScalerRange = (0,1), or (-1,1)    - tuple
     
-    TestSplitInd = None
-    ValSplitInd = None
     DataToReturn = []
-    
-    # Set slit date for valid and test sets:
-    if len(SplitDataIndicator) == 2:
-        TestSplitInd = SplitDataIndicator[1]
-        ValSplitInd  = SplitDataIndicator[0]
-    elif len(SplitDataIndicator) == 1:
-        TestSplitInd  = SplitDataIndicator[0]
-    
+       
     # Select columns of DataFrame:    
     DF = DataDF.copy().loc[:, [DependentVar] + IndependentVar]
     
@@ -127,5 +109,48 @@ def PrepareDataForRegression(DataDF, DependentVar, IndependentVar,\
           
                 
     return tuple(DataToReturn)
+
+
+#########################################################
+
+
+def MakeLagedVariableNames(LagsRangeList = None, LagsDirectList = None):
+
+    LagedVarList = {}
+    
+    if (LagsRangeList):
+        for Var, Lags in LagsRangeList.items():
+            LagedVarList.update( { Var + '_Lag' + str(Lag+1): Lag+1\
+                                    for Lag in range(Lags)} ) 
+                
+    if (LagsDirectList):
+        for Var, Lags in LagsDirectList.items():
+            LagedVarList.update( { Var + '_Lag' + str(Lag): Lag\
+                                    for Lag in Lags} )
+    
+    return LagedVarList
+
+
+##############################################################
+
+
+def PrepareLags(DataFrame, LagsList):
+    
+    # LagsList is dictinary:
+    # LagsList = {Var1_LagNr:LagNr, Var1_LagNr:LagNr}
+    
+
+    DF = DataFrame.copy()
+    
+    for VarName, LagNr in LagsList.items():
         
-        
+        # Retrive Based Variable Name by substract '_Lag...'
+        # Set up Laged Values
+        VariableBase = re.sub(r'_Lag.+', '', VarName)
+        DF[VarName] = DF[VariableBase].shift(LagNr)   
+          
+    
+    MaxLags =  max(LagsList.values())           
+    DF = DF.iloc[ MaxLags: , : ]
+                                
+    return DF
