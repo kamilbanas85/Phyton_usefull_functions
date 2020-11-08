@@ -121,13 +121,13 @@ def MakeFinalDataFull(Model,\
                       Train_X_Scaled, Val_X_Scaled,\
                       Scaler_y,\
                       MainDF,\
-                      TestSplitInd, ValSplitInd,\ 
+                      TestSplitInd, ValSplitInd,\
                       yhat_Test_DF = None,\
                       yhat_Forecast_DF = None):
     
     #  Train_X_Scaled, Val_X_Scaled, Test_X_Scaled should be shaped when RNN is used  
     
-    MainDF_WithModeledData = MainDF.copy()    
+    MainDF_WithModeledData = MainDF.copy()
         
     # Take fitted data and make a prediction
     yhat_Train_sld = Model.predict(Train_X_Scaled)
@@ -161,8 +161,8 @@ def MakeFinalDataFull(Model,\
                       
     if yhat_Test_DF is not None:
         
-        yhat_Test_DF__IN = yhat_Test_DF.copy()        
-        yhat_Test_DF__IN.columns.values[0] = 'Predicted-Test'        
+        yhat_Test_DF__IN = yhat_Test_DF.copy()
+        yhat_Test_DF__IN.columns.values[0] = 'Predicted-Test'
         MainDF_WithModeledData = MainDF_WithModeledData\
                       .merge(yhat_Test_DF__IN,  how='left', on='Date')
 
@@ -191,7 +191,7 @@ def MakeFinalDataFull(Model,\
     
     #  Train_X_Scaled, Val_X_Scaled, Test_X_Scaled should be shaped when RNN is used  
     
-    MainDF_WithModeledData = MainDF.copy()    
+    MainDF_WithModeledData = MainDF.copy()
         
     # Take fitted data and make a prediction
     yhat_Train_sld = Model.predict(Train_X_Scaled)
@@ -225,8 +225,8 @@ def MakeFinalDataFull(Model,\
                       
     if yhat_Test_DF is not None:
         
-        yhat_Test_DF__IN = yhat_Test_DF.copy()        
-        yhat_Test_DF__IN.columns.values[0] = 'Predicted-Test'        
+        yhat_Test_DF__IN = yhat_Test_DF.copy()
+        yhat_Test_DF__IN.columns.values[0] = 'Predicted-Test'
         MainDF_WithModeledData = MainDF_WithModeledData\
                       .merge(yhat_Test_DF__IN,  how='left', on='Date')
 
@@ -267,6 +267,6 @@ def MakeRegressStatModelsWithFormula(TrainSet, TestSet, formula):
     print('MAE: '+str( MAE(InternalTestSet[DependedVariable],\
                            InternalTestSet['Predicted'] )) )
     print('RSME: '+str( RSME(InternalTestSet[DependedVariable],\
-                           InternalTestSet['Predicted'] )) )   
+                           InternalTestSet['Predicted'] )) )
         
     return InternalTestSet
