@@ -246,27 +246,31 @@ def MakeFinalDataFull(Model,\
 def MakeRegressStatModelsWithFormula(TrainSet, TestSet, formula):
     
     
-    InternalTrainSet = TrainSet.copy()
-    InternalTestSet = TestSet.copy()
+    Train = TrainSet.copy()
+    Test = TestSet.copy()
     
     Model = smf.ols(formula = formula, data = TrainSet)
     DependedVariable = Model.endog_names
     
     ModelFitted = Model.fit()
     
-    InternalTrainSet['Fitted'] = ModelFitted.fittedvalues
-    InternalTestSet['Predicted'] = ModelFitted.predict(TestSet)
+    Train['Fitted'] = ModelFitted.fittedvalues
+    Test['Predicted-Test'] = ModelFitted.predict(TestSet)
     
-    plot = InternalTrainSet.append(InternalTestSet)\
-                [[DependedVariable, 'Fitted', 'Predicted']].plot()
+    plot = Train.append(Test)\
+                [[DependedVariable, 'Fitted', 'Predicted-Test']].plot()
                 
     print(plot)
     
-    CalculateR2andR2adj(TestSet, DependedVariable, ModelFitted)
-    
-    print('MAE: '+str( MAE(InternalTestSet[DependedVariable],\
-                           InternalTestSet['Predicted'] )) )
-    print('RSME: '+str( RSME(InternalTestSet[DependedVariable],\
-                           InternalTestSet['Predicted'] )) )
+    CalculateR2andR2adjForSatModelsWithFormula(\
+                                Test, DependedVariable, ModelFitted)
+
+    print('MAE: '+str( MAE(Test[DependedVariable],\
+                           Test['Predicted-Test'] )) )
+    print('RSME: '+str( RSME(Test[DependedVariable],\
+                             Test['Predicted-Test'] )) )   
         
-    return InternalTestSet
+    
+    FullData = Train.append(Test)
+    
+    return (FullData, ModelFitted)
