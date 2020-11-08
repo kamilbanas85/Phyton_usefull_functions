@@ -185,7 +185,7 @@ def MakeFinalDataFull(Model,\
                       Train_X_Scaled, Val_X_Scaled,\
                       Scaler_y,\
                       MainDF,\
-                      TestSplitInd, ValSplitInd,\ 
+                      TestSplitInd, ValSplitInd,\
                       yhat_Test_DF = None,\
                       yhat_Forecast_DF = None):
     
