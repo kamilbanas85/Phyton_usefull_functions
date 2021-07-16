@@ -47,6 +47,7 @@ def is_list_of_strings(lst):
         return bool(lst) and isinstance(lst, list) and all(isinstance(elem, str) for elem in lst)
         # You could break it down into `if-else` constructs to make it clearer to read.
 
+        
 def PrepareDataForRegression(DataDF, DependentVar, IndependentVar,\
                              TestSplitInd, \
                              ValSplitInd = None,\
