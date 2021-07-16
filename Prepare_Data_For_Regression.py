@@ -69,7 +69,7 @@ def PrepareDataForRegression(DataDF, DependentVar, IndependentVar,\
     if DummyForCol is not None:
         if is_list_of_strings(DummyForCol):
             DF = pd.get_dummies(DF, columns = DummyForCol,\
-                      prefix = [ colName + '_' for colName in DummyForCol], drop_first=True ).columns
+                      prefix = [ colName + '_' for colName in DummyForCol], drop_first=True )
         else:
             DF = pd.get_dummies(DF, columns = [DummyForCol],\
                                 prefix = [DummyForCol + '_'], drop_first=True )
