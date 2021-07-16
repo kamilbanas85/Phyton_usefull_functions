@@ -43,6 +43,9 @@ def ScaleThenConvertArrayToDF(BasicDF, Scaler):
 
 #########################################################
 
+def is_list_of_strings(lst):
+        return bool(lst) and isinstance(lst, list) and all(isinstance(elem, str) for elem in lst)
+        # You could break it down into `if-else` constructs to make it clearer to read.
 
 def PrepareDataForRegression(DataDF, DependentVar, IndependentVar,\
                              TestSplitInd, \
@@ -62,8 +65,12 @@ def PrepareDataForRegression(DataDF, DependentVar, IndependentVar,\
     
     # CREATE DUMMY VARIABLES FOR 'DummyForCol' COLUMNS
     if DummyForCol is not None:
-        DF = pd.get_dummies(DF, columns = [DummyForCol],\
-                                prefix = [DummyForCol+'_'], drop_first=True )
+        if is_list_of_strings(DummyForCol):
+            DF = pd.get_dummies(DF, columns = DummyForCol,\
+                      prefix = [ colName + '_' for colName in DummyForCol], drop_first=True ).columns
+        else:
+            DF = pd.get_dummies(DF, columns = [DummyForCol],\
+                                prefix = [DummyForCol + '_'], drop_first=True )
         
                 
     ### SPLIT INTO DEPENDENT AND INDEPANEDNT VARIABLES
