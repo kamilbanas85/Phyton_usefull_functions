@@ -6,8 +6,8 @@ import pandas as pd
 
 def MAE(y, yhat):
     
-    yhatV = yhat.values
-    yV = y.values
+    yhatV = yhat.values.reshape(-1)
+    yV = y.values.reshape(-1)
     
     MAE = np.mean( np.absolute(yV - yhatV) )
     
@@ -17,12 +17,23 @@ def MAE(y, yhat):
 
 def RSME(y, yhat):
     
-    yhatV = yhat.values
-    yV = y.values
+    yhatV = yhat.values.reshape(-1)
+    yV = y.values.reshape(-1)
     
     RSME = np.sqrt( np.mean( np.square(yV - yhatV) ) )
     
     return round(RSME, 2)
+
+##############################################
+
+def MAPE(y, yhat):
+    
+    yhatV = yhat.values.reshape(-1)
+    yV = y.values.reshape(-1)
+    
+    MAPE = np.mean( np.abs((yV - yhatV)/yV) )*100
+    
+    return round(MAPE, 2)
 
 ##############################################
 
