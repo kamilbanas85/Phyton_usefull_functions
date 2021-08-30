@@ -40,8 +40,8 @@ def MAPE(y, yhat):
 
 def CalculateR2andR2adj(y, yhat , X, const = True):
     
-    yhatV = yhat.values
-    yV = y.values
+    yhatV = yhat.values.reshape(-1)
+    yV = y.values.reshape(-1)
     NoOfRegressors = len(X.columns)
     if const:
         NoOfRegressors = NoOfRegressors-1
