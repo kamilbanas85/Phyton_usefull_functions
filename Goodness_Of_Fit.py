@@ -53,8 +53,10 @@ def CalculateR2andR2adj(y, yhat , X, const = True):
     adjusted_r_squared = 1 - (1-r_squared)*(len(yV)-1)\
                             /( len(yV) - NoOfRegressors - 1 )
      
-    r_squared = round(r_squared[0], 4)
-    adjusted_r_squared = round(adjusted_r_squared[0], 4)
+#    r_squared = round(r_squared[0], 4)
+#    adjusted_r_squared = round(adjusted_r_squared[0], 4)
+    r_squared = round(r_squared, 4)
+    adjusted_r_squared = round(adjusted_r_squared, 4)
     
     print(f'R2: {r_squared}')
     print(f'R2_adj: {adjusted_r_squared}')
