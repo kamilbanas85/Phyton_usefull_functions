@@ -317,7 +317,7 @@ LagsList = { var : LagNr for var, LagNr in LagsList.items()\
 
 
 
-
+'''
 #%% Temperary !!!!!!!!!!!!!!!
 
 X_Train = X_Train\
@@ -331,3 +331,4 @@ X_all= pd.get_dummies( X_Train.append(X_Test), columns = [DummyForColumn],\
 X_Train  = X_all.copy().loc[X_Train.index]
     
 X_Test = X_all.copy().loc[X_Test.index] 
+'''
