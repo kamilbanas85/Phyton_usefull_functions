@@ -162,7 +162,6 @@ def PrepareDataForRegression(DataDF, DependentVar, IndependentVar,\
 
 #########################################################
 
-
 def MakeLagedVariableNames(LagsRangeList = None, LagsDirectList = None):
 
     LagedVarList = {}
