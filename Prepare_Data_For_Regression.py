@@ -49,6 +49,26 @@ def is_list_of_strings(lst):
         # You could break it down into `if-else` constructs to make it clearer to read.
 
         
+#########################################################
+
+def CreateDummyForColumns(DFwithoutDummy, DummyForColumns):
+    
+    DF = DFwithoutDummy.copy()
+    
+    # CREATE DUMMY VARIABLES FOR 'DummyForCol' COLUMNS
+    if DummyForColumns is not None:
+        if is_list_of_strings(DummyForColumns):
+            DF = pd.get_dummies(DF, columns = DummyForColumns,\
+                      prefix = [ colName + '_' for colName in DummyForColumns], drop_first=True )
+        else:
+            DF = pd.get_dummies(DF, columns = [DummyForColumns],\
+                                prefix = [DummyForColumns + '_'], drop_first=True )
+    
+    return DF
+
+
+#########################################################
+        
 def PrepareDataForRegression(DataDF, DependentVar, IndependentVar,\
                              TestSplitInd, \
                              ValSplitInd = None,\
@@ -66,6 +86,7 @@ def PrepareDataForRegression(DataDF, DependentVar, IndependentVar,\
     DF = DataDF.copy().loc[:, [DependentVar] + IndependentVar]
     
     # CREATE DUMMY VARIABLES FOR 'DummyForCol' COLUMNS
+    '''
     if DummyForCol is not None:
         if is_list_of_strings(DummyForCol):
             DF = pd.get_dummies(DF, columns = DummyForCol,\
@@ -73,7 +94,10 @@ def PrepareDataForRegression(DataDF, DependentVar, IndependentVar,\
         else:
             DF = pd.get_dummies(DF, columns = [DummyForCol],\
                                 prefix = [DummyForCol + '_'], drop_first=True )
-        
+    '''
+
+    DF = CreateDummyForColumns(DF, DummyForCol)
+    
                 
     ### SPLIT INTO DEPENDENT AND INDEPANEDNT VARIABLES
     DF_y = DF.loc[:, [DependentVar] ]
@@ -133,6 +157,7 @@ def PrepareDataForRegression(DataDF, DependentVar, IndependentVar,\
           
                 
     return tuple(DataToReturn)
+
 
 
 #########################################################
