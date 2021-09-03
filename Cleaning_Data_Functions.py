@@ -1,5 +1,6 @@
 import pandas as pd
 
+######################################################################
 
 def RemoveTopAndBottomRowsWithNA(DF, ColName):
     
@@ -24,7 +25,7 @@ def RemoveTopAndBottomRowsWithNA(DF, ColName):
         
     return(DF)
 
-###################################
+######################################################################
 
 def RemoveBottomRowsWithNA(DF, ColName):
     
@@ -43,7 +44,7 @@ def RemoveBottomRowsWithNA(DF, ColName):
         
     return(DF)
 
-###################################
+######################################################################
 
 def RemoveTopRowsWithNA(DF, ColName):
     
@@ -62,7 +63,7 @@ def RemoveTopRowsWithNA(DF, ColName):
         
     return(DF)
 
-###################################
+######################################################################
 
 def CheckDupicatesOnIndex(DF, IndexColumnName):
     if DF.index.is_unique :
