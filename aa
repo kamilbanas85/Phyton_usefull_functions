@@ -1,0 +1,132 @@
+import re
+
+def KeepBasicIndeptVarAndDummies(DFwithAllVars, SelectedVarsList,\
+                                 KeepBasicIndept = True,\
+                                 KeepDummies = True):
+    
+    if KeepBasicIndept and KeepDummies:
+        ## Remove Lags from DFwithAllVars column name
+        regex = re.compile(r'.*_Lag[0-9]+.*')
+        AllVarsWithoutLags = [colName for colName in DFwithAllVars.columns.to_list()\
+                            if not regex.match(colName)]
+
+        ## Keep Lags from SelectedVarsList column name
+        regex = re.compile(r'.*_Lag[0-9]+.*')
+        LagsVarsFromSelectedVarsList = [colName for colName in SelectedVarsList\
+                           if regex.match(colName)]
+
+        Finall_features = [colName for colName in DFwithAllVars.columns.to_list() if
+                           colName in AllVarsWithoutLags + LagsVarsFromSelectedVarsList ]
+    
+    if KeepBasicIndept and not KeepDummies:
+        
+    
+    return Finall_features
+    
+    
+## Remove Dumies From SelectedVarsList
+
+#########################################################################
+#########################################################################
+#########################################################################
+DummyForColumns = DummyForColumn 
+
+def SelectDummiesVariables(VarList, DummyForCol):
+    
+    if DummyForCol is not None:
+        if is_list_of_strings(DummyForCol):
+            
+            ListOfSelectedVarList = []
+            for DummyName in DummyForCol: 
+                regexForDummy = re.compile(f'{DummyName}__[0-9]+')      
+                ListOfSelectedVarList.append(\
+                                [colName for colName in VarList\
+                                         if regexForDummy.match(colName)] )
+            
+            DummiesForVarList = list( np.concatenate(ListOfSelectedVarList) )
+            
+        else:
+            regexForDummy = re.compile(f'{DummyForCol}__[0-9]+')
+            DummiesForVarList = [colName for colName in VarList\
+                                     if regexForDummy.match(colName)]
+    
+    return DummiesForVarList
+
+def SelectLagsVariables(VarList):
+    
+    regexForLags = re.compile(r'.*_Lag[0-9]+.*')
+    LagsVarList = [colName for colName in VarList\
+                                     if regexForLags.match(colName)]
+    
+    return LagsVarList
+
+
+
+SelectDummiesVariables(selected_features_BE, ['month','hour'])
+SelectLagsVariables(selected_features_BE)
+
+def KeepBasicIndeptVarAndDummies(DFwithAllVars, SelectedVarsList,\
+                                 KeepBasicIndept = True,\
+                                 KeepDummies = True):
+    
+    AllVarList = DFwithAllVars.columns
+    
+    if KeepBasicIndept and KeepDummies:
+       
+    if KeepBasicIndept and not KeepDummies:
+        
+    
+    return Finall_features
+
+
+
+#########################################################################
+#########################################################################
+#########################################################################
+
+
+
+###
+## Remove Basic Variables From SelectedVarsList
+
+filtered_02 = [colName for colName in selected_features_BE if regexForLag.match(colName)]
+print(filtered_02)
+
+
+
+    
+ ## Keep Lags from Finall_features column name
+regexForLag = re.compile(r'.*_Lag[0-9]+.*')
+regexForLag = re.compile(r'.*_Lag[0-9]+.*')
+
+filtered_02 = [colName for colName in selected_features_BE if regexForLag.match(colName)]
+print(filtered_02)   
+    
+    
+    
+## Remove Lags from X_Train column name
+regex = re.compile(r'.*_Lag[0-9]+.*')
+filtered = [colName for colName in X_Train.columns.to_list() if not regex.match(colName)]
+print(filtered)
+
+## Keep Lags from Finall_features column name
+regex = re.compile(r'.*_Lag[0-9]+.*')
+filtered_02 = [colName for colName in selected_features_BE if regex.match(colName)]
+print(filtered_02)
+
+Finall_features = [colName for colName in X_Train.columns.to_list() if
+                           colName in filtered + filtered_02 ]
+
+
+
+
+
+
+X_Train = X_Train\
+            .assign(month = lambda x: x.index.month.astype('int') )
+X_Test = X_Test\
+            .assign(month = lambda x: x.index.month.astype('int') )
+X_all= pd.get_dummies( X_Train.append(X_Test), columns = [DummyForColumn],\
+                                prefix = [DummyForColumn+'_'], drop_first=True )
+X_Train  = X_all.copy().loc[X_Train.index]
+
