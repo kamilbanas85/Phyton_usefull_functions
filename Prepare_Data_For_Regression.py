@@ -202,3 +202,72 @@ def PrepareLags(DataFrame, LagsList):
     DF = DF.iloc[ MaxLags: , : ]
                                 
     return DF
+
+
+##############################################################
+
+def SelectDummiesVariables(VarList, DummyForCol):
+    
+    if DummyForCol is not None:
+        if is_list_of_strings(DummyForCol):
+            
+            ListOfSelectedVarList = []
+            for DummyName in DummyForCol: 
+                regexForDummy = re.compile(f'{DummyName}__[0-9]+')      
+                ListOfSelectedVarList.append(\
+                                [colName for colName in VarList\
+                                         if regexForDummy.match(colName)] )
+            
+            DummiesForVarList = list( np.concatenate(ListOfSelectedVarList) )
+            
+        else:
+            regexForDummy = re.compile(f'{DummyForCol}__[0-9]+')
+            DummiesForVarList = [colName for colName in VarList\
+                                     if regexForDummy.match(colName)]
+    
+    return DummiesForVarList
+
+##############################################################
+
+def SelectLagsVariables(VarList):
+    
+    regexForLags = re.compile(r'.*_Lag[0-9]+.*')
+    LagsVarList = [colName for colName in VarList\
+                                     if regexForLags.match(colName)]
+    
+    return LagsVarList
+
+
+##############################################################
+
+def KeepBasicIndeptVarAndDummies(DFwithAllVars, SelectedVarsList,\
+                                 DummyForCol,\
+                                 KeepBasicIndept = True,\
+                                 KeepDummies = True):
+    
+    AllVarList = DFwithAllVars.columns.to_list()
+    
+    # Select Subset with lags or dummies:    
+    VarsFromAllWithLags = SelectLagsVariables( AllVarList )
+    VarsFromSelectedWithLags = SelectLagsVariables(  SelectedVarsList )
+    DummiesFromAll = SelectDummiesVariables( AllVarList, DummyForCol )
+    DummiesromSelected = SelectDummiesVariables( SelectedVarsList, DummyForCol  )
+
+
+    if KeepBasicIndept and KeepDummies:       
+        BasicIndept = list( set(AllVarList) - set(VarsFromAllWithLags) - set(DummiesFromAll) )
+        Finall_features = BasicIndept + DummiesFromAll + VarsFromSelectedWithLags
+        
+    if KeepBasicIndept and not KeepDummies:
+        BasicIndept = list( set(AllVarList) - set(VarsFromAllWithLags) - set(DummiesFromAll) )
+        Finall_features = BasicIndept + VarsFromSelectedWithLags
+
+    if not KeepBasicIndept and KeepDummies:
+        BasicIndept = list( set(AllVarList) - set(VarsFromAllWithLags) - set(DummiesFromAll) )
+        Finall_features = DummiesFromAll + VarsFromSelectedWithLags
+    
+    # Make proper order:
+        
+    Finall_features = [colName for colName in AllVarList if colName in Finall_features ]
+    
+    return Finall_features
