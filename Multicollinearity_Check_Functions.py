@@ -1,6 +1,18 @@
 import numpy as np
 import pandas as pd
 from statsmodels.stats.outliers_influence import variance_inflation_factor
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+# https://www.geeksforgeeks.org/detecting-multicollinearity-with-vif-python/
+##############################################################################################
+#  Looking at pairs of correlations does not help us to establish
+#  whether more than two variables have a linear correlation.
+#  What the VIF test reveals is how much the coefficient errors
+#  “grow” when the rest of the variables are present
+##############################################################################################
+
 
 
 ##############################################################################################
@@ -39,3 +51,34 @@ def GVIF(DF, VariablesList):
         resultsLIST.append(tmp_gvif)  
      
     return pd.concat(resultsLIST)
+
+##############################################################################################
+### Correlation Maps based on: https://medium.com/@szabo.bibor/how-to-create-a-seaborn-correlation-heatmap-in-python-834c0686b88e
+'''
+# basic
+sns.heatmap( AnalysisData.corr() )
+
+# with values
+plt.figure(figsize=(16, 6))
+heatmap = sns.heatmap(AnalysisData.corr(), vmin=-1, vmax=1, annot=True)# Give a title to the heatmap. Pad defines the distance of the title from the top of the heatmap.heatmap.set_title('Correlation Heatmap', fontdict={'fontsize':12}, pad=12);
+heatmap.set_title('Correlation Heatmap', fontdict={'fontsize':12}, pad=12);
+'''
+
+##############################################################################################
+### Plot colrrelations Map with values and colors with divergence map
+
+def PlotCorrelationMap(DF):
+    plt.figure(figsize=(16, 6))
+    heatmap = sns.heatmap(DF.corr(), vmin=-1, vmax=1, annot=True, cmap='BrBG')
+    heatmap.set_title('Correlation Heatmap', fontdict={'fontsize':18}, pad=12);
+ 
+
+##############################################################################################
+### Plot only correlations with dependent variable
+
+def PlotCorrelationMapRelativeToVariable(DF, varName):
+    plt.figure(figsize=(8, 12))
+    heatmap = sns.heatmap(DF.corr()[[varName]].drop(varName, axis = 0)\
+                          .sort_values(by= varName , ascending=False),\
+                          vmin=-1, vmax=1, annot=True, cmap='BrBG')
+    heatmap.set_title(f'Features Correlating with {varName}', fontdict={'fontsize':18}, pad=16)
