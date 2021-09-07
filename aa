@@ -1,132 +1,99 @@
-import re
+#%% Selecting Futures - Lags:
 
-def KeepBasicIndeptVarAndDummies(DFwithAllVars, SelectedVarsList,\
-                                 KeepBasicIndept = True,\
-                                 KeepDummies = True):
+##################### 1 - method - backward elimination:
+selected_features_BE = BackwardEliminationPvalue(\
+                                    X_Train = X_Train, y_Train = y_Train)
+  
     
-    if KeepBasicIndept and KeepDummies:
-        ## Remove Lags from DFwithAllVars column name
-        regex = re.compile(r'.*_Lag[0-9]+.*')
-        AllVarsWithoutLags = [colName for colName in DFwithAllVars.columns.to_list()\
-                            if not regex.match(colName)]
+##################### 2 - method - stepwise-bidirectional elimination:
+selected_features_BE = stepwise_selection(X_Train, y_Train)    
+      
 
-        ## Keep Lags from SelectedVarsList column name
-        regex = re.compile(r'.*_Lag[0-9]+.*')
-        LagsVarsFromSelectedVarsList = [colName for colName in SelectedVarsList\
-                           if regex.match(colName)]
+#################### 3 - method - stepwise-bidirectional backward elimination:
+selected_features_BE = BidirectionalStepwiseSelection(X_Train, y_Train, elimination_criteria = "adjr2")[0]   
 
-        Finall_features = [colName for colName in DFwithAllVars.columns.to_list() if
-                           colName in AllVarsWithoutLags + LagsVarsFromSelectedVarsList ]
-    
-    if KeepBasicIndept and not KeepDummies:
+
+
+#################### 4 - method - Genetive Algoritms:
+# kaggle.com/azimulh/feature-selection-using-evolutionaryfs-library
+# https://www.kaggle.com/azimulh/feature-selection-using-evolutionaryfs-library
+from EvolutionaryFS import GeneticAlgorithmFS
+from sklearn.metrics import mean_squared_error
+from sklearn.linear_model import LinearRegression
+
+data_dict={0:{'x_train':X_Train,'y_train':y_Train,'x_test':X_Test,'y_test':y_Test}}
+columns_list=list(X_Train.columns)
+
+model_object=LinearRegression(n_jobs=-1)
+# model_object=LinearRegression(n_jobs=-1)
+evoObj=GeneticAlgorithmFS(model=model_object,data_dict=data_dict,\
+                          cost_function=mean_squared_error,\
+                          average='',\
+                          cost_function_improvement='decrease',\
+                          columns_list=columns_list,\
+                          generations=100,\
+                          population=50,\
+                          prob_crossover=0.9,\
+                          prob_mutation=0.1,\
+                          run_time=60000)
+selected_features_BE__finall=evoObj.GetBestFeatures()    
+
+#################### 4 - method - Recursive Feature Elimination
+# https://towardsdatascience.com/feature-selection-with-pandas-e3690ad8504b
+from sklearn.feature_selection import RFE
+from sklearn.linear_model import LinearRegression
+model = LinearRegression()
+
+
+#no of features
+nof_list=np.arange(1, X_Train.shape[1] )            
+high_score=0
+#Variable to store the optimum features
+nof=0           
+score_list =[]
+for n in range(len(nof_list)):
+    model = LinearRegression()
+    rfe = RFE(model,nof_list[n])
+    X_train_rfe = rfe.fit_transform(X_Train, y_Train)
+    X_test_rfe = rfe.transform(X_Test)
+    model.fit(X_train_rfe, y_Train)
+    score = model.score(X_test_rfe, y_Test)
+    score_list.append(score)
+    if(score>high_score):
+        high_score = score
+        nof = nof_list[n]
         
-    
-    return Finall_features
-    
-    
-## Remove Dumies From SelectedVarsList
-
-#########################################################################
-#########################################################################
-#########################################################################
-DummyForColumns = DummyForColumn 
-
-def SelectDummiesVariables(VarList, DummyForCol):
-    
-    if DummyForCol is not None:
-        if is_list_of_strings(DummyForCol):
-            
-            ListOfSelectedVarList = []
-            for DummyName in DummyForCol: 
-                regexForDummy = re.compile(f'{DummyName}__[0-9]+')      
-                ListOfSelectedVarList.append(\
-                                [colName for colName in VarList\
-                                         if regexForDummy.match(colName)] )
-            
-            DummiesForVarList = list( np.concatenate(ListOfSelectedVarList) )
-            
-        else:
-            regexForDummy = re.compile(f'{DummyForCol}__[0-9]+')
-            DummiesForVarList = [colName for colName in VarList\
-                                     if regexForDummy.match(colName)]
-    
-    return DummiesForVarList
-
-def SelectLagsVariables(VarList):
-    
-    regexForLags = re.compile(r'.*_Lag[0-9]+.*')
-    LagsVarList = [colName for colName in VarList\
-                                     if regexForLags.match(colName)]
-    
-    return LagsVarList
+print("Optimum number of features: %d" %nof)
+print("Score with %d features: %f" % (nof, high_score))
 
 
+cols = list(X_Train.columns)
+model = LinearRegression()
+#Initializing RFE model
+rfe = RFE(model, 10)             
+#Transforming data using RFE
+X_rfe = rfe.fit_transform(X_Train,y_Train)  
+#Fitting the data to model
+model.fit(X_rfe,y_Train)              
+temp = pd.Series(rfe.support_,index = cols)
+selected_features_rfe = temp[temp==True].index
+print(selected_features_rfe)
 
-SelectDummiesVariables(selected_features_BE, ['month','hour'])
-SelectLagsVariables(selected_features_BE)
+#%% Update X sets  and LagList
 
-def KeepBasicIndeptVarAndDummies(DFwithAllVars, SelectedVarsList,\
+selected_features_BE__finall = \
+KeepBasicIndeptVarAndDummies(X_Train, selected_features_BE,\
+                                 DummyForCol = 'month',\
                                  KeepBasicIndept = True,\
-                                 KeepDummies = True):
-    
-    AllVarList = DFwithAllVars.columns
-    
-    if KeepBasicIndept and KeepDummies:
-       
-    if KeepBasicIndept and not KeepDummies:
-        
-    
-    return Finall_features
+                                 KeepDummies = True)
 
 
+#%%
 
-#########################################################################
-#########################################################################
-#########################################################################
+X_Train = X_Train.filter(items=selected_features_BE__finall)
+X_Test = X_Test.filter(items=selected_features_BE__finall)
 
+LagsList = { var : LagNr for var, LagNr in LagsList.items()\
+                                    if var in selected_features_BE__finall}
 
-
-###
-## Remove Basic Variables From SelectedVarsList
-
-filtered_02 = [colName for colName in selected_features_BE if regexForLag.match(colName)]
-print(filtered_02)
-
-
-
-    
- ## Keep Lags from Finall_features column name
-regexForLag = re.compile(r'.*_Lag[0-9]+.*')
-regexForLag = re.compile(r'.*_Lag[0-9]+.*')
-
-filtered_02 = [colName for colName in selected_features_BE if regexForLag.match(colName)]
-print(filtered_02)   
-    
-    
-    
-## Remove Lags from X_Train column name
-regex = re.compile(r'.*_Lag[0-9]+.*')
-filtered = [colName for colName in X_Train.columns.to_list() if not regex.match(colName)]
-print(filtered)
-
-## Keep Lags from Finall_features column name
-regex = re.compile(r'.*_Lag[0-9]+.*')
-filtered_02 = [colName for colName in selected_features_BE if regex.match(colName)]
-print(filtered_02)
-
-Finall_features = [colName for colName in X_Train.columns.to_list() if
-                           colName in filtered + filtered_02 ]
-
-
-
-
-
-
-X_Train = X_Train\
-            .assign(month = lambda x: x.index.month.astype('int') )
-X_Test = X_Test\
-            .assign(month = lambda x: x.index.month.astype('int') )
-X_all= pd.get_dummies( X_Train.append(X_Test), columns = [DummyForColumn],\
-                                prefix = [DummyForColumn+'_'], drop_first=True )
-X_Train  = X_all.copy().loc[X_Train.index]
 
