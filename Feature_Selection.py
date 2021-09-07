@@ -300,32 +300,3 @@ def __stepwiseSelectionRaw__(X, y, model_type ="linear",elimination_criteria = "
     return selected_cols, iterations_log
 
 
-####################################################################
-# https://github.com/kaushalshetty/FeatureSelectionGA
-
-##############################################################
-# Update X sets  and LagList
-
-'''
-X_Train = X_Train.filter(items=selected_features_BE)
-X_Test = X_Test.filter(items=selected_features_BE)
-
-LagsList = { var : LagNr for var, LagNr in LagsList.items()\
-                                    if var in selected_features_BE}
-
-
-
-#%% Temperary !!!!!!!!!!!!!!!
-
-X_Train = X_Train\
-            .assign(month = lambda x: x.index.month.astype('int') )
-X_Test = X_Test\
-            .assign(month = lambda x: x.index.month.astype('int') )
-
-X_all= pd.get_dummies( X_Train.append(X_Test), columns = [DummyForColumn],\
-                                prefix = [DummyForColumn+'_'], drop_first=True )
-
-X_Train  = X_all.copy().loc[X_Train.index]
-    
-X_Test = X_all.copy().loc[X_Test.index] 
-'''
