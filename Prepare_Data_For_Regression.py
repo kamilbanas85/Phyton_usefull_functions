@@ -187,19 +187,18 @@ def PrepareLags(DataFrame, LagsList):
     # LagsList is dictinary:
     # LagsList = {Var1_LagNr:LagNr, Var1_LagNr:LagNr}
     
-
     DF = DataFrame.copy()
     
-    for VarName, LagNr in LagsList.items():
+    if LagsList is not None:
+        for VarName, LagNr in LagsList.items():
         
-        # Retrive Based Variable Name by substract '_Lag...'
-        # Set up Laged Values
-        VariableBase = re.sub(r'_Lag.+', '', VarName)
-        DF[VarName] = DF[VariableBase].shift(LagNr)   
+            # Retrive Based Variable Name by substract '_Lag...'
+            # Set up Laged Values
+            VariableBase = re.sub(r'_Lag.+', '', VarName)
+            DF[VarName] = DF[VariableBase].shift(LagNr)   
           
-    
-    MaxLags =  max(LagsList.values())           
-    DF = DF.iloc[ MaxLags: , : ]
+        MaxLags =  max(LagsList.values())           
+        DF = DF.iloc[ MaxLags: , : ]
                                 
     return DF
 
