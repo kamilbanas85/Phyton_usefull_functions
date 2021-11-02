@@ -95,5 +95,167 @@ X_Test = X_Test.filter(items=selected_features_BE__finall)
 
 LagsList = { var : LagNr for var, LagNr in LagsList.items()\
                                     if var in selected_features_BE__finall}
+                                    
+                                    
+                                    
+ ######################################################################################
+ 
+ def SplitIndexIncludingBatch(DF, BatchSize,\
+                            TestSplitInd,\
+                            ValSplitInd,\
+                            WindowLength = None):
+    '''
+    Function return dates of Validation and Test Sets for selected Batch size.
+    Accualy it return values closest to selected values.
+    
+    Function calculate length of the DataFrame including future cut by WindowLength.
+    If data length is not divided by batch size function cut the data.
+    Then function prepare length of Train set based on specified date. However, if length of 
+    train set is not divided by batch size, than it cuts data from the end of set.
+    
+    Args:
+        DF (pd.DataFrame): Oryginal DataFrame with all observations
+        BatchSize (int): batch size
+        TestSplitInd (str): String representing date of Start of Test Set
+        ValSplitInd (str): String representing date of Start of Test Set
+        WindowLength (int): length of lags widnow
+
+    Returns:
+        (Train.index, Val.index, Test.index) (tuple(indexdatetime, indexdatetime, indexdatetime)):
+                3 indexs representing train, validaton and test sets
+            
+    '''
+     
+    
+    
+    DFfinall = DF.copy()
+    TotalLength = DF.shape[0]
+
+    if WindowLength is not None:
+        DFfinall = DFfinall.iloc[(WindowLength-1):]
+        TotalLength = DFfinall.shape[0]
+        
+    if TotalLength % BatchSize != 0:
+#       print('Batch Size should be divisor of the data length')
+        DFfinall = DFfinall.iloc[(TotalLength%BatchSize):]
+        
+    Train, RestDF  = TrainTestSets(DFfinall, ValSplitInd)
+    if Train.shape[0] % BatchSize != 0:      
+        Train = Train.iloc[:-(Train.shape[0] % BatchSize)]
+        RestDF = DFfinall[Train.index[-1]:].iloc[1:]
+    
+    Val, Test = TrainTestSets(RestDF, TestSplitInd)
+    if Val.shape[0] % BatchSize != 0:    
+        Val = Val.iloc[:-(Val.shape[0] % BatchSize)]
+        Test = RestDF[Val.index[-1]:].iloc[1:]    
+
+    return (Train.index, Val.index, Test.index)
+
+
+################################################
+################################################
+################################################
+
+Train,Val, Test = CheckPossibilityOfBatch(AnalysisData, BatchSize = 133,\
+                         TestSplitInd = TestSetDate,\
+                         ValSplitInd = ValSetDate,\
+                         WindowLength = 52)
+    
+    AnalysisData.head(50)
+len(Train), len(Val), len(Test)
+
+
+
+
+
+
+
+
+list(A1.index)[2:]
+A1[A1.index[-3]:].iloc[1:]
+    
+def PrepareDataForLSTMregression(DataDF, DependentVar, IndependentVar,\
+                                 TestSplitInd, \
+                                 ValSplitInd,\
+                                 BatchSize = None,\
+                                 WindowLength = None,\
+                                 WidndowForDependentVar = False,\
+                                 DummyForCol = None,\
+                                 ScalerType = None,\
+                                 ScalerRange = (0,1)):
+
+    # DependentVar <- str, IndependentVar <- list of str
+    # ScalerType <- 'MinMax' or 'Standard'
+    # ScalerRange = (0,1), or (-1,1)    - tuple
+    
+    DataToReturn = []
+       
+    # Select columns of DataFrame:    
+    DF = DataDF.copy().loc[:, [DependentVar] + IndependentVar]
+    
+    # CREATE DUMMY VARIABLES FOR 'DummyForCol' COLUMNS
+
+    DF = CreateDummyForColumns(DF, DummyForCol)
+    
+                
+    ### SPLIT INTO DEPENDENT AND INDEPANEDNT VARIABLES
+    DF_y = DF.loc[:, [DependentVar] ]
+    DF_X = DF.drop(columns= [DependentVar] )
+     
+    
+      
+    ### DIVIDE INTO TRAIN, VALIDATION AND TEST SETS    
+    TrainDF_y, TestDF_y = TrainTestSets(DF_y, TestSplitInd)
+    TrainDF_X, TestDF_X = TrainTestSets(DF_X, TestSplitInd)
+    if ValSplitInd is not None:
+        TrainDF_y, ValDF_y  = TrainTestSets(TrainDF_y, ValSplitInd)
+        TrainDF_X, ValDF_X  = TrainTestSets(TrainDF_X, ValSplitInd)
+
+
+    # Return data if NO scaling or SCALE DATA:
+    if ScalerType is None:
+        # Create list of DF to return
+        DataToReturn = [TrainDF_X, TrainDF_y,\
+                        TestDF_X, TestDF_y]
+        if ValSplitInd is not None:
+            DataToReturn =\
+                DataToReturn[:2] + [ValDF_X, ValDF_y] + DataToReturn[2:]
+                
+    elif ScalerType is not None:
+        # Define Scalers:        
+        if ScalerType == 'MinMax':    
+            scaler_y = MinMaxScaler( feature_range = ScalerRange )
+            scaler_X = MinMaxScaler( feature_range = ScalerRange )        
+        elif ScalerType == 'Standard':    
+            scaler_y = StandardScaler()
+            scaler_X = StandardScaler()
+    
+        # Fit scalers on Trains Sets:
+        scaler_y = scaler_y.fit(TrainDF_y)
+        scaler_X = scaler_X.fit(TrainDF_X)    
+
+        # Scale And Convert to DataFrame Train and Test sets:        
+        Train_y_sld = ScaleThenConvertArrayToDF(TrainDF_y, scaler_y)
+        Train_X_sld = ScaleThenConvertArrayToDF(TrainDF_X, scaler_X)
+
+        Test_y_sld = ScaleThenConvertArrayToDF(TestDF_y, scaler_y)
+        Test_X_sld = ScaleThenConvertArrayToDF(TestDF_X, scaler_X)
+        
+        # Create data to return:
+        DataToReturn = [Train_X_sld, Train_y_sld,\
+                        Test_X_sld, Test_y_sld,\
+                        scaler_X, scaler_y]
+        
+        if ValSplitInd is not None:
+            # Scale And Convert to DataFrame Val sets        
+            Val_y_sld = ScaleThenConvertArrayToDF(ValDF_y, scaler_y)
+            Val_X_sld = ScaleThenConvertArrayToDF(ValDF_X, scaler_X)
+            
+            # Extend data to return:
+            DataToReturn =\
+                DataToReturn[:2] + [Val_X_sld, Val_y_sld] + DataToReturn[2:]
+          
+                
+    return tuple(DataToReturn)
 
 
