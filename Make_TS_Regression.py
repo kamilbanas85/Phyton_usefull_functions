@@ -90,19 +90,23 @@ def MakeTSforecastLSTM_XwithDependentVar(Data_X,
     DF_X = Data_X.copy()
     NumberOfSteps = int(DF_X.shape[0]/WindowSize)
     
+    for column in DF_X.columns:
+      if DependentVar in column:
+          Dependent_Var = column
+    
     yhat = []
     for step in range(NumberOfSteps):
        
        DF_X_CurrentStep = DF_X.copy().iloc[step*WindowSize:(step+1)*WindowSize,:]
        if step>0 and step < NumberOfSteps-1:
-           DF_X_CurrentStep[DependentVar] = y_for__DF_X_NextStep
+           DF_X_CurrentStep[Dependent_Var] = y_for__DF_X_NextStep
        
        X_CurrentStep_shaped = DF_X_CurrentStep.values.reshape(-1,WindowSize,DF_X_CurrentStep.shape[1])
        yhat_CurrentStep = Model.predict(X_CurrentStep_shaped)[0][0]
        yhat.append( yhat_CurrentStep )
 
        # Prepare y-window for next step
-       y_from__DF_X_CurrentStep = DF_X_CurrentStep[DependentVar].values
+       y_from__DF_X_CurrentStep = DF_X_CurrentStep[Dependent_Var].values
        y_for__DF_X_NextStep = (list(y_from__DF_X_CurrentStep) + [yhat_CurrentStep])[1:]      
        
     # rescale if needed
