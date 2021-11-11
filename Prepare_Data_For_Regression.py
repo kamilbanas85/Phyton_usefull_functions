@@ -309,11 +309,11 @@ def KeepBasicIndeptVarAndDummies(DFwithAllVars, SelectedVarsList,\
   
   ########################################################################
   
-  def TrainValTestSplitIndexIncludingBatch(DF,
-                                           TestSplitInd,
-                                           ValSplitInd,
-                                           BatchSize = None,
-                                           WindowLength = 1):
+def TrainValTestSplitIndexIncludingBatch(DF,
+                                         TestSplitInd,
+                                         ValSplitInd,
+                                         BatchSize = None,
+                                         WindowLength = 1):
     '''
     Function return dates of Validation and Test Sets for selected Batch size.
     Actualy it return values closest to selected values.
