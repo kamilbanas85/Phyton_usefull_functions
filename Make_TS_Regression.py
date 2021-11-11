@@ -61,6 +61,63 @@ def MakeTSforecast(Data_X, Model, DependentVar,
     
     return (yhat_DF, DF_X)
   
+
+############################################################################################
+ 
+def MakeTSforecastLSTM_XwithDependentVar(Data_X, 
+                                         Model, 
+                                         DependentVar,
+                                         WindowSize = 1,
+                                         Scaler_y = None,
+                                         Test_or_Forecast = 'Test'):
+    '''
+    Function iterativly does a prediction on set with dependent variable
+    in predictors set.
+    
+    
+    Args:
+        Data_X (pd.DataFrame): DataFrame with independent variables
+        Model (tensorflow compiled model after fitting): DataFrame with dependent variables
+        DependentVar (str): Name of dependent variable
+        WindowSize (int): Size of winow used to prepare data
+        Scaler_y (sklearn.preprocessing): fitted scaler from sklearn
+        Test_or_Forecast (str): String used to name column: Test of Forecast
+
+    Returns:
+        yhat_DF (pd.DataFrame): DataFrames with rescaled predicted results 
+    '''
+    
+    DF_X = Data_X.copy()
+    NumberOfSteps = int(DF_X.shape[0]/WindowSize)
+    
+    yhat = []
+    for step in range(NumberOfSteps):
+       
+       DF_X_CurrentStep = DF_X.copy().iloc[step*WindowSize:(step+1)*WindowSize,:]
+       if step>0 and step < NumberOfSteps-1:
+           DF_X_CurrentStep[DependentVar] = y_for__DF_X_NextStep
+       
+       X_CurrentStep_shaped = DF_X_CurrentStep.values.reshape(-1,WindowSize,DF_X_CurrentStep.shape[1])
+       yhat_CurrentStep = Model.predict(X_CurrentStep_shaped)[0][0]
+       yhat.append( yhat_CurrentStep )
+
+       # Prepare y-window for next step
+       y_from__DF_X_CurrentStep = DF_X_CurrentStep[DependentVar].values
+       y_for__DF_X_NextStep = (list(y_from__DF_X_CurrentStep) + [yhat_CurrentStep])[1:]      
+       
+    # rescale if needed
+    if Scaler_y:
+        yhat = Scaler_y.inverse_transform(np.array(yhat).reshape(-1, 1))
+
+    # Make DF from yhat:
+    Index = DF_X.iloc[WindowSize-1::WindowSize, :].index.to_frame()
+    yhat_DF  = pd.DataFrame(yhat,\
+                           index = Index.index,\
+                           columns = [f'Predicted-{Test_or_Forecast}'])
+
+    return yhat_DF
+  
+  
 ############################################################################################
   
 def MakeANNfinalData(Model,\
