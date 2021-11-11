@@ -104,7 +104,7 @@ def CreateDummyForColumns(DFwithoutDummy, DummyForColumns):
 
 #########################################################
         
-def PrepareDataForRegression(DataDF, DependentVar, IndependentVar,\
+def PrepareDataForRegressionOLD(DataDF, DependentVar, IndependentVar,\
                              TestSplitInd, \
                              ValSplitInd = None,\
                              DummyForCol = None,\
@@ -305,3 +305,220 @@ def KeepBasicIndeptVarAndDummies(DFwithAllVars, SelectedVarsList,\
     Finall_features = [colName for colName in AllVarList if colName in Finall_features ]
     
     return Finall_features
+
+  
+  ########################################################################
+  
+  def TrainValTestSplitIndexIncludingBatch(DF,\
+                                         TestSplitInd,\
+                                         ValSplitInd,\
+                                         BatchSize = None,\
+                                         WindowLength = 1):
+    '''
+    Function return dates of Validation and Test Sets for selected Batch size.
+    Actualy it return values closest to selected values.
+    
+    Function calculate length of the DataFrame including future cut by WindowLength.
+    If data length is not divided by batch size function cut the data.
+    Then function prepare length of Train set based on specified date. However, if length of 
+    train set is not divided by batch size, than data it cuted from the end of set.
+    
+    WindowLength = 1 - means no window
+
+    Args:
+        DF (pd.DataFrame): Oryginal DataFrame with all observations
+        BatchSize (int): batch size
+        TestSplitInd (str): String representing date of Start of Test Set
+        ValSplitInd (str): String representing date of Start of Test Set
+        WindowLength (int): length of lags widnow
+
+    Returns:
+        (Train.index, Val.index, Test.index) (tuple(indexdatetime, indexdatetime, indexdatetime)):
+                3 indexs representing train, validaton and test sets
+            
+    '''
+     
+    DFfinall = DF.copy()
+    TotalLength = DF.shape[0]
+    
+    # if WindowLength > 1 cut some data from the begining to enable window creation
+    if WindowLength > 1:
+        DFfinall = DFfinall.iloc[(WindowLength-1):]
+        TotalLength = DFfinall.shape[0]
+    
+    if BatchSize is None:
+        Train, Test = TrainTestSets(DFfinall, TestSplitInd)
+        if ValSplitInd is not None:
+            Train, Val  = TrainTestSets(Train, ValSplitInd)
+            return (Train.index, Val.index, Test.index)
+        else:
+            return (Train.index, None, Test.index)
+    
+    elif BatchSize is not None:    
+        if TotalLength % BatchSize != 0:
+#           print('Batch Size should be divisor of the data length')
+            DFfinall = DFfinall.iloc[(TotalLength%BatchSize):]
+        
+        Train, RestDF  = TrainTestSets(DFfinall, ValSplitInd)
+        if Train.shape[0] % BatchSize != 0:      
+            Train = Train.iloc[:-(Train.shape[0] % BatchSize)]
+            RestDF = DFfinall[Train.index[-1]:].iloc[1:]
+    
+        Val, Test = TrainTestSets(RestDF, TestSplitInd)
+        if Val.shape[0] % BatchSize != 0:    
+            Val = Val.iloc[:-(Val.shape[0] % BatchSize)]
+            Test = RestDF[Val.index[-1]:].iloc[1:]    
+
+        return (Train.index, Val.index, Test.index)
+
+
+################################################################################################
+
+def CreateDFwithWindowsForLSTM(DF, IndexRange, WindowLength):
+    
+    '''
+    Function creates DataFrame with laged windows. Ready for reshape for LSTM
+
+    Args:
+        DF (pd.DataFrame): Oryginal DataFrame with all observations
+        IndexRange (Index): Selected Index Range for which create data
+        WindowLength (int): length of lags widnow
+
+    Returns:
+        DFwithWindow (pd.DataFrame): DataFrame with added windowed rows
+    '''
+    
+    DFwithWindow_List = []
+
+    for index in IndexRange:     
+        DFwithWindow_List.append( DF.loc[:index].iloc[-WindowLength:] )
+       
+    DFwithWindow = pd.concat( DFwithWindow_List )
+
+    return DFwithWindow
+
+  
+################################################################################################
+
+def SplitDataBasedOnIndex(DFx, DFy, TrainIdx, ValIdx, TestIdx, WindowLen = None):
+    '''
+    Function splits DataFrames into Train, Val and Test sets based on index
+
+    Args:
+        DFx (pd.DataFrame): DataFrame with independent variables
+        DFy (pd.DataFrame): DataFrame with dependent variables
+        
+        TrainIdx (Index): Index for Train Set
+        ValIdx (Index): Index for Validation Set
+        TestIdx (Index): Index for Test Set
+
+    Returns:
+        NoName (tuple): tuple of 6 DataFrames
+    '''
+    
+    if WindowLen is None:
+        TrainDFx = DFx.loc[TrainIdx]
+        TestDFx  = DFx.loc[TestIdx]
+        if ValIdx is not None:
+            ValDFx = DFx.loc[ValIdx]
+        else:
+            ValDFx = None
+    else:
+        TestLen  = len(TestIdx)*WindowLen
+        if ValIdx is not None:
+            ValLen = len(ValIdx)*WindowLen
+        elif ValIdx is not None:
+            ValLen = 0
+        TrainLen = len(TrainIdx)*WindowLen
+
+        TestDFx  = DFx.iloc[-TestLen:,:]           
+        ValDFx   = DFx.iloc[-(ValLen+TestLen):-TestLen,:]             
+        TrainDFx = DFx.iloc[-(TrainLen+ValLen+TestLen):-(ValLen+TestLen),:]
+        
+    # Only X set contain window, so y is the same for bouth:
+    TrainDFy   = DFy.loc[TrainIdx]
+    TestDFy    = DFy.loc[TestIdx]
+    if ValIdx is not None:
+        ValDFy     = DFy.loc[ValIdx]
+    else:
+        ValDFy = None
+    
+    if ValIdx is not None:
+        return (TrainDFx, TrainDFy, ValDFx, ValDFy, TestDFx, TestDFy)
+    elif ValIdx is None:
+        return (TrainDFx, TrainDFy, TestDFx, TestDFy)
+
+      
+################################################################################################
+
+def PrepareDataForRegression(X_df, y_df, 
+                             TestSplitInd, \
+                             ValSplitInd,\
+                             BatchSize = None,\
+                             WindowLength = 1,\
+                             ScalerType = None,\
+                             ScalerRange = (0,1)):
+
+    # ScalerType <- 'MinMax' or 'Standard'
+    # ScalerRange = (0,1), or (-1,1)    - tuple
+    
+    DF_y = y_df.copy()
+    DF_X = X_df.copy()
+ 
+    ### Divide Index into TRAIN, VALIDATION and TEST sets    
+    TrainIndex, ValIndex, TestIndex =\
+        TrainValTestSplitIndexIncludingBatch(DF = DF_y,
+                                             TestSplitInd = TestSplitInd,
+                                             ValSplitInd = ValSplitInd,
+                                             BatchSize = BatchSize,
+                                             WindowLength = WindowLength)
+    
+    # Split and Return Data if without window and without scaling
+    if WindowLength == 1 and ScalerType is None:
+        return SplitDataBasedOnIndex(DF_X, DF_y, TrainIndex, ValIndex, TestIndex)
+    
+    # Set up scaler     
+    if ScalerType is not None:
+        # Make PreTrainDF to scale on all traing data including widnow
+        PreTrainDF_X, PreTrainDF_y = DF_X.loc[:TrainIndex[-1]], DF_y.loc[:TrainIndex[-1]]
+        # Define Scalers:        
+        if ScalerType == 'MinMax':    
+            scaler_y = MinMaxScaler( feature_range = ScalerRange )
+            scaler_X = MinMaxScaler( feature_range = ScalerRange )        
+        elif ScalerType == 'Standard':    
+            scaler_y = StandardScaler()
+            scaler_X = StandardScaler()
+    
+        # Fit scalers on Trains Sets:
+        scaler_y = scaler_y.fit(PreTrainDF_y)
+        scaler_X = scaler_X.fit(PreTrainDF_X)   
+        
+        # Scale all data
+        DF_y_sld = ScaleThenConvertArrayToDF(DF_y, scaler_y)
+        DF_X_sld = ScaleThenConvertArrayToDF(DF_X, scaler_X)
+    
+    # Split and Return Data if without window and with scaling
+    if WindowLength == 1 and ScalerType is not None:
+        return SplitDataBasedOnIndex(DF_X_sld, DF_y_sld, TrainIndex, ValIndex, TestIndex)\
+                 +  (scaler_X, scaler_y)
+
+    ####################################################################################
+    ##### Widnow > 1   <- becouse if Window ==1 data was returned
+    ####################################################################################
+    
+    # create windowed data
+    IndexRange = list(TrainIndex) + list(ValIndex) + list(TestIndex)
+    if ScalerType is not None:
+        DF_X_sld_withWindow = CreateDFwithWidows(DF = DF_X_sld,\
+                                                 IndexRange = IndexRange,\
+                                                 WindowLength = WindowLength)
+    else:
+        DF_X_withWindow = CreateDFwithWidows(DF = DF_X,\
+                                             IndexRange = IndexRange,\
+                                             WindowLength = WindowLength) 
+    # Split data on Train, Val and Test sets and return
+    if ScalerType is not None:
+         return SplitDataBasedOnIndex(DF_X_sld_withWindow, DF_y_sld, TrainIndex, ValIndex, TestIndex, WindowLength) \
+                     + (scaler_X, scaler_y)
+    if ScalerType is None:
+         return SplitDataBasedOnIndex(DF_X_withWindow, DF_y, TrainIndex, ValIndex, TestIndex, WindowLength)
