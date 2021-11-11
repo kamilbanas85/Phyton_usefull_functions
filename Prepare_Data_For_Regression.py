@@ -307,12 +307,12 @@ def KeepBasicIndeptVarAndDummies(DFwithAllVars, SelectedVarsList,\
     return Finall_features
 
   
-  ########################################################################
-  
-def TrainValTestSplitIndexIncludingBatch(DF,
-                                         TestSplitInd,
-                                         ValSplitInd,
-                                         BatchSize = None,
+########################################################################
+
+def TrainValTestSplitIndexIncludingBatch(DF,\
+                                         TestSplitInd,\
+                                         ValSplitInd,\
+                                         BatchSize = None,\
                                          WindowLength = 1):
     '''
     Function return dates of Validation and Test Sets for selected Batch size.
