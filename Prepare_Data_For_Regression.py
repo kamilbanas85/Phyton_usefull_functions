@@ -9,6 +9,41 @@ import re
 
 #########################################################
 
+def DevideOnXandY_CreateDummies(DataDF,
+                                DependentVar,
+                                IndependentVar,
+                                DummyForCol = None):
+    '''
+    Function devide data on predictors 'X' and taget 'y' sets. 
+    If needed it add dummies into predictors. 
+  
+    
+    Args:
+        Data_X (pd.DataFrame): DataFrame with all vaiables
+        DependentVar (str): Name of dependent var
+        IndependentVar (list(str)): List of Independent variables
+        DummyForCol (list(str)): List of variable for which create dummies
+    Returns:
+        A tuple (DF_X, DF_y) containing,
+            DF_X  (pd.DataFram): dataframe with predicotrs
+            DF_y  (pd.DataFram): dataframe with independent variable
+
+    '''
+    
+    DF = DataDF.copy().loc[:, [DependentVar] + IndependentVar]   
+    
+    # CREATE DUMMY VARIABLES FOR 'DummyForCol' COLUMNS
+    DF = CreateDummyForColumns(DF, DummyForCol)                    
+   
+    ### SPLIT INTO DEPENDENT AND INDEPANEDNT VARIABLES
+    DF_y = DF.copy().loc[:, [DependentVar] ]
+    DF_X = DF.copy().drop(columns= [DependentVar] )
+
+      
+    return (DF_X, DF_y)
+
+#########################################################
+
 
 def TrainTestSets(DFdata, SplitIndicator):
     
