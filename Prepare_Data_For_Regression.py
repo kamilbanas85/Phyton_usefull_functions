@@ -509,13 +509,13 @@ def PrepareDataForRegression(X_df, y_df,
     # create windowed data
     IndexRange = list(TrainIndex) + list(ValIndex) + list(TestIndex)
     if ScalerType is not None:
-        DF_X_sld_withWindow = CreateDFwithWidows(DF = DF_X_sld,\
-                                                 IndexRange = IndexRange,\
-                                                 WindowLength = WindowLength)
+        DF_X_sld_withWindow = CreateDFwithWindowsForLSTM(DF = DF_X_sld,\
+                                                         IndexRange = IndexRange,\
+                                                         WindowLength = WindowLength)
     else:
-        DF_X_withWindow = CreateDFwithWidows(DF = DF_X,\
-                                             IndexRange = IndexRange,\
-                                             WindowLength = WindowLength) 
+        DF_X_withWindow = CreateDFwithWindowsForLSTM(DF = DF_X,\
+                                                     IndexRange = IndexRange,\
+                                                     WindowLength = WindowLength) 
     # Split data on Train, Val and Test sets and return
     if ScalerType is not None:
          return SplitDataBasedOnIndex(DF_X_sld_withWindow, DF_y_sld, TrainIndex, ValIndex, TestIndex, WindowLength) \
