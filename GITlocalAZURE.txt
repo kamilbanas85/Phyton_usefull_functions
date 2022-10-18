@@ -1,0 +1,97 @@
+Tutorial
+https://docs.microsoft.com/en-us/azure/app-service/deploy-local-git?tabs=powershell
+
+reset hasal w comand prompt (znlesc z gitem):
+
+rundll32.exe keymgr.dll,KRShowKeyMgr
+
+
+zeby zrobic:
+
+git push azure master
+
+jak chce haslo to -> anluuj -> i recznie w cmd -> username -> password
+
+
+###################################################
+###################################################
+### requirment.txt
+
+# a Anaconda prompt 
+
+# wybrac folder gdzie jest repo
+
+#
+
+ustawic zmienna srodowiskowa
+
+
+C:\Users\sod10030105\AppData\Local\Continuum\anaconda3\python.exe -m venv venvs
+
+.\venvs\Scripts\activate 
+
+# zainstalowac wszystkie bibliteki te co bede potrzebne
+pip install dash
+pip install dash-extensions
+pip install dash-bootstrap-components
+pip install plotly
+pip install pandas
+
+
+# stworzyc requirment
+pip freeze > requirements.txt
+
+#####
+# check 
+C:\Users\sod10030105\AppData\Local\Continuum\anaconda3\python.exe app.py
+#####
+
+##################################################
+#### git
+
+git init
+
+git add application.py
+git add requirements.txt
+git add venv
+
+git commit -m 'comit 01'
+git push azure master
+
+
+#####################################################
+######  delpy from local git
+
+# to remove old remote connection to azure
+git remote rm azure
+# then new remote set up
+
+
+# set up master as azure remote 
+git remote add azure <url>
+
+
+# change url
+git remote set-url azure new.git.url/here
+
+git push azure master
+
+git ls-files
+
+
+### show remote
+git remote -v
+### when creating new folder with new repo and need fetch histry from remote
+git pull azureMain master  --allow-unrelated-histories
+
+
+###################################################
+###
+
+C:\Users\sod10030105\AppData\Local\Continuum\anaconda3\python.exe ScriptName.py
+http://localhost:8050
+
+
+
+
+
