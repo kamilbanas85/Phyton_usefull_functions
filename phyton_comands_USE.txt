@@ -1,21 +1,4 @@
-### run script
 
-### IN COMAND PROMPT (standard)
-# set location on folder where scrpit is located
-# run script with comand:
-
-C:\Users\sod10030105\AppData\Local\Continuum\anaconda3\python.exe ScriptName.py
-
-## where 'C:\Users\sod10030105\AppData\Local\Continuum\anaconda3\python.exe' is location of phyton.exe file
-## which can be find by
-
-import sys
-print(sys.executable)
-
-##########################################################################
-##########################################################################
-##########################################################################
-##########################################################################
 
 
 ## nan find 
@@ -261,91 +244,6 @@ from varname import nameof
 nameof(Con_UK_04) 
 
 
-#############################################################
-##############################################################
-##############################################################
-### SEND grid send email
-
-import base64
-
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import (Mail, Attachment, FileContent, FileName, FileType, Disposition, ContentId)
-# import sendgrid
-
-#     to_emails='piotr.pawlowski@pgnig.pl',
-
-message = Mail(
-    from_email='kamil.banas@pgnig.pl',
-    to_emails='kamil.banas@pgnig.pl',
-    subject='Raport Tygodniowy',
-    html_content = Mail_Tamplate_HTML
-)
-
-path_to_file = '/dbfs/FileStore/RAPORT_weekly/weekly_2021-03-30.pdf'
-
-with open(path_to_file, 'rb') as f:
-    data = f.read()
-    f.close()
-encoded_file = base64.b64encode(data).decode()
-
-attachedFile = Attachment(
-    FileContent(encoded_file),
-    FileName('RaportTygodniowy.pdf'),
-    FileType('application/pdf'),
-    Disposition('attachment')
-)
-message.attachment = attachedFile
-
-
-
-PGNIG_logo_path = "/dbfs/FileStore/RAPORT_weekly/pic/logo.jpg"
-with open(PGNIG_logo_path, 'rb') as fp:
-    PGNIG_logo = fp.read()
-    fp.close()
-    
-encoded_PGNIG_logo = base64.b64encode(PGNIG_logo).decode()
-  
-PGNIG_logo_attachment = Attachment(
-                    FileContent(encoded_PGNIG_logo),
-                    FileName('logo.jpg'),
-                    FileType('image/jpeg'),
-                    Disposition('inline'),
-                    ContentId("ID_IN_HTML")
-                          )
-
-message.attachment = PGNIG_logo_attachment
-
-SendGridKey = dbutils.secrets.get(scope = "mf-models-kv", key="sendgrid-kb")
-
-# sg = SendGridAPIClient('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')  
-sg = SendGridAPIClient( SendGridKey )
-
-response = sg.send(message)
-print(response.status_code, response.body, response.headers)
-
-
-
-### w HTML_contnet = <img width=135 height=50 src="cid:ID_IN_HTML"/>
-
-##################################################################################################
-##################################################################################################
-##################################################################################################
-#### send emeial when outlook is installed 
-
-import win32com.client as win32
-outlook = win32.Dispatch('outlook.application')
-mail = outlook.CreateItem(0)
-mail.To = 'kamil.banas@pgnig.pl'
-mail.Subject = 'Message subject'
-mail.Body = 'Message body'
-mail.HTMLBody = '<h2>HTML Message body</h2>' #this field is optional
-
-# To attach a file to the email (optional):
-attachment = r"C:\\Users\\sod10030105\\Desktop\\lng__usa.pdf"
-mail.Attachments.Add(attachment)
-
-mail.Send()
-
 ##################################################################################################
 ##################################################################################################
 ##################################################################################################
@@ -435,21 +333,6 @@ DF = DF.T.reset_index().T
 ### remove multi-index name
 
 .pivot_table(index=['dateCET'], columns = 'scenario', values='value').rename_axis(None, axis=1)
-
-######################################################
-######################################################
-### find phyton exe file
-
-import sys
-print(sys.executable)
-
-
-
-
-
-
-
-
 
 
 
