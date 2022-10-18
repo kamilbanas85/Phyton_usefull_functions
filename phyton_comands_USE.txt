@@ -1,51 +1,4 @@
 
-
-
-## nan find 
-def nans(df): return df[df.isnull().any(axis=1)]
-
-
-#########################################################################
-#########################################################################
-
-def AddColumnsNameAsRow(DF):
-    
-    DFtoRetrun = DF.copy()
-    DFtoRetrun = pd.concat([pd.DataFrame([DF.columns.to_list()], columns = DF.columns), DF])
-    return DFtoRetrun
-
-#########################################################################
-#########################################################################
-## Iterate over rows:
-
-for row in Df.iterrows():
-
-# row[1] represent rows data
-# row[0] represent index of row
-
-     if 'Week' in str(row[1][0]):
-
-#########################################################################
-#########################################################################
-## create df inside loop:
-
-TableDF = pd.DataFrame(columns = ['Date', 'Volumne', 'Auction_Name'])
-
-
-for i in range( DataDf3.shape[0] ):
-         
-	TableDF = TableDF.append( pd.DataFrame({\
-                        'Date' : [ DataDf3.iloc[i+1][0] ],
-                        'Volumne' : [ DataDf3.iloc[i][-2] ],
-                        'Auction_Name' : [ DataDf3.iloc[i][-1] ]}) )
-
-
-
-#### Filter by data dosn't contain word
-
-Data1[~Data1['Auction_Name'].str.contains("German")]
-
-
 #########################################################################
 #########################################################################
 ### Exctract data from Excel withou Strikethrough
@@ -65,37 +18,6 @@ def ExtractExcelDataWithoutStrikethrough(FileName):
     return DataDF
 
 
-#########################################################################
-#########################################################################
-
-from dateutil.parser import parse
-
-def is_date(string, fuzzy=False):
-    """
-    Return whether the string can be interpreted as a date.
-
-    :param string: str, string to check for date
-    :param fuzzy: bool, ignore unknown tokens in string if True
-    """
-    try: 
-        parse(string, fuzzy=fuzzy)
-        return True
-
-    except ValueError:
-        return False
-
-
-#########################################################################
-#########################################################################
-### Extract date from string:
-
-import dateutil.parser as dparser
-
-dparser.parse( 'EEX Auction Calendar_21.12.2020.xlsx', fuzzy=True)
-# Output:   datetime.datetime(2020, 12, 21, 0, 0)
-
-
-#########################################################################
 #########################################################################
 
 import pandas as pd
@@ -169,189 +91,16 @@ VarDataFrom__currency_values.T.reset_index(drop=True).T\
 
 VarDataFrom__currency_values.columns =  list( VarDataFrom__currency_values.columns.get_level_values(1).values )
 
-#########################################################################################
-#########################################################################################
-#########################################################################################
-### assign variable with variable name
-
-PipeFlowData_DF2 = PipeFlowData_DF2\
-    .assign(  **{f'WTI_{AveragePeriod}': lambda x: x.resample('M').mean()['WTI'].rolling( AveragePeriod ).mean()}  )
-
-######################################################
-### assign mean statistcs
-
-temp_projections = avg_temp.copy()\
-    .assign( **{ 'mean' : np.nan, '25%' : np.nan, '50%': np.nan, '75%': np.nan,
-                'mean+std' : np.nan, 'mean-std' : np.nan} )\
-    .assign( **{
-        'mean' : lambda x: x.groupby(x.index.month).transform('mean'),
-        '25%' : lambda x: x.groupby(x.index.month).transform(lambda y: y.quantile(0.25) ),
-        '50%' : lambda x: x.groupby(x.index.month).transform(lambda y: y.quantile(0.50) ),
-        '75%' : lambda x: x.groupby(x.index.month).transform(lambda y: y.quantile(0.75) ),
-        'mean+std' : lambda x: x.groupby(x.index.month).transform(lambda y: y.mean() + y.std() ),
-        'mean-std' : lambda x: x.groupby(x.index.month).transform(lambda y: y.mean() - y.std() )\
-                } )
 
 
-
-temp_projections = temp_projections\
-            .transform(lambda x: np.where(x.index.day == 15, x, np.nan ))\
-            .interpolate(method='pchip', limit=31, limit_direction='both')
-
-########################################
-##########################################
 ###########################################
 ### get var name
 
-get_variable_name(Con_UK_04)          
-from varname import nameof
+   get_variable_name(Con_UK_04)          
+   from varname import nameof
 
-nameof(Con_UK_04) 
+   nameof(Con_UK_04) 
 
-
-##################################################################################################
-##################################################################################################
-##################################################################################################
-### date convert
-
-DF.assign(Date = lambda x: pd.to_datetime( x['Date'], utc=False ) )\
-
-        
-DF.loc[:,'Date']  = pd.to_datetime( DF.loc[:,'Date'], utc=False )
-
-
-## below doen't work. It produces 'object' type
-
-DF.loc[:,'Date']  = pd.to_datetime( DF.loc[:,'Date'] ).dt.date
-
-
-
-### https://towardsdatascience.com/10-tricks-for-converting-numbers-and-strings-to-datetime-in-pandas-82a4645fc23d
-
-
-### https://www.statology.org/convert-datetime-to-date-pandas/
-
-.assign(Date = lambda x: pd.to_datetime( x['Date'] ).dt.date )\
-.assign(Date = lambda x: pd.to_datetime( x['Date'] ).dt.normalize() )\
-
-##################################################################################################
-##################################################################################################
-##################################################################################################
-### check id string date
-
-#%%
-
-from dateutil.parser import parse
-
-def is_date(string, fuzzy=False):
-    """
-    Return whether the string can be interpreted as a date.
-
-    :param string: str, string to check for date
-    :param fuzzy: bool, ignore unknown tokens in string if True
-    """
-    try: 
-        parse(string, fuzzy=fuzzy)
-        return True
-
-    except ValueError:
-        return False
-
-##################################################################################################
-##################################################################################################
-##################################################################################################
-### read table from pdf
-
-
-import tabula
-
-
-AnnualEnagasForecastFile =\
-'''https://www.enagas.es/stfls/ENAGAS/
-Gesti%C3%B3n%20T%C3%A9cnica%20del%20Sistema/Documentos/
-DEMANDA/Demanda%20anual%20escalonada%20oct-20.pdf
-'''.replace("\n","")
-
-
-
-AnnualEnagasForecast = tabula.read_pdf(AnnualEnagasForecastFile, pages = "all")[0]
-
-
-##################################################################################################
-##################################################################################################
-##################################################################################################
-### Set column names as 1 row
-
-DF = DF.T.reset_index().T
-
-
-##################################################################################################
-##################################################################################################
-##################################################################################################
-### replace some sign with other
-
-.replace(' ','', regex=True)  
-
-##################################################################################################
-##################################################################################################
-##################################################################################################
-### remove multi-index name
-
-.pivot_table(index=['dateCET'], columns = 'scenario', values='value').rename_axis(None, axis=1)
-
-
-
-##################################################################################################################################################################
-# Time how long process_with_numpy(image) takes to run
-with timer():
-  print('Numpy version')
-  process_with_numpy(image)
-
-# Add a decorator that will make timer() a context manager
-@contextlib.contextmanager
-def timer():
-  """Time the execution of a context block.
-
-  Yields:
-    None
-  """
-  start = time.time()
-  # Send control back to the context block
-  yield
-  end = time.time()
-  print('Elapsed: {:.2f}s'.format(end - start))
-
-with timer():
-  print('This should take approximately 0.25 seconds')
-  time.sleep(0.25)
-
-
-
-########################
-
-def in_dir(directory):
-  """Change current working directory to `directory`,
-  allow the user to run some code, and change back.
-
-  Args:
-    directory (str): The path to a directory to work in.
-  """
-  current_dir = os.getcwd()
-  os.chdir(directory)
-
-  # Add code that lets you handle errors
-  try:
-    yield
-  # Ensure the directory is reset,
-  # whether there was an error or not
-  finally:
-    os.chdir(current_dir)
-
-
-
-
-
-pip install --user tensorflow==2.4.1
 
 ###################################
 
@@ -360,22 +109,37 @@ pip install --user tensorflow==2.4.1
 
 ################
 
-for key,val in ResultsDIC['figConsumption'].items():
-        exec(key + '=val')
+   for key,val in ResultsDIC['figConsumption'].items():
+      exec(key + '=val')
 
 
 
 ##############
 
-    ### Set up return dictinary
-    for variable in RetrurnList:
-        RetrurnDIC[variable] = eval(variable)
-    
+   ### Set up return dictinary
+   for variable in RetrurnList:
+      RetrurnDIC[variable] = eval(variable)
 
-############
-from varname import nameof
+###
+
+   from varname import nameof
     
-nameof(SupplyObs)
+   nameof(SupplyObs)
+
+##################################################################################################
+
+
+
+
+
+
+pip install --user tensorflow==2.4.1
+
+
+
+
+
+
 
 
 ##################
@@ -406,21 +170,12 @@ for Sub_project in LNG_production_capacity_Replacment['Sub-project (Oryginal)'].
 ### from groupby to dicinary
 
 # Slice by delivery date - year contracts 
-TGE_year_ByYearDelivery = dict(tuple(TGE_year.groupby('Year_Delivery')))
-
-
-####################################################
-####################################################
-## duplactes
-
-
-def ShowDupicates(df):
-
-	return df[df.duplicated(keep=False)]
+   DF_ByYearDelivery = dict(tuple(DF.groupby('Year_Delivery')))
 
 
 ###################################################
-   # Sort Power Columns By Last Full Year 
-   SortedColumnList_Power_BE = list( Power_BE.resample('Y').sum().sort_values(by = Power_BE.resample('Y').sum().index[-2],axis = 1, ascending = False).columns )
-   Power_BE = Power_BE[SortedColumnList_Power_BE]
+### Sort Columns By Last Full Year Statistics
+
+   SortedColumnList_DF = list( DF.resample('Y').sum().sort_values(by = DF.resample('Y').sum().index[-2],axis = 1, ascending = False).columns )
+   Power_BE = Power_BE[SortedColumnList_DF]
  
