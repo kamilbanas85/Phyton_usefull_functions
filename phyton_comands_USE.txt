@@ -4,41 +4,6 @@
 ## nan find 
 def nans(df): return df[df.isnull().any(axis=1)]
 
-##########################################################################
-##########################################################################
-
-part_02.loc[:,'Date'] = pd.to_datetime( part_02['Date'] )  
-
-
-
-
-#########################################################################
-#########################################################################
-
-'/dbfs/FileStore/EUA_REPORTS_net_positions/ESMA_data__until_20201231.csv'
-
-to load library:
-
-'dbfs:/FileStore/EUA_REPORTS_net_positions/ESMA_data__until_20201231.csv'  
-
-
-
-
-#########################################################################
-#########################################################################
-
-## databrics save table
-
-spark.createDataFrame( DataBasedOnICEhistory_NetPossition.round(0).reset_index() ).write.mode("overwrite").saveAsTable("EUA_Net_Possition")
-
-
-## databrics read table:
-
-
-df_spark = spark.sql("select * from EUA_Net_Possition")
-df_pd = df_spark.toPandas()
-
-
 
 #########################################################################
 #########################################################################
