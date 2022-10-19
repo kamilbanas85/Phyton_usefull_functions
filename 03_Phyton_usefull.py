@@ -1,3 +1,68 @@
+#########################################################################
+### get var name
+
+   from varname import nameof
+   nameof(MyVariable)
+
+# or
+
+   [x for x in globals() if globals()[x] is MyVariable][0]
+
+#########################################################################
+### Assign variables to them names form dictionary:   {'VarName':Var, ....}
+
+   for key,val in ResultsDIC['figConsumption'].items():
+      exec(key + '=val')
+
+
+
+#########################################################################
+### Set up return dictinary. RetrurnList is list os string
+  
+   for variable in RetrurnList:
+      RetrurnDIC[variable] = eval(variable)
+
+
+        
+#########################################################################
+#########################################################################
+###################################################
+### Sort Columns By Last Full Year Statistics
+
+   SortedColumnList_DF = list( DF.resample('Y').sum().sort_values(by = DF.resample('Y').sum().index[-2],axis = 1, ascending = False).columns )
+   DF = DF[SortedColumnList_DF]
+
+
+#########################################################################
+### from groupby to dicinary
+
+# Slice by delivery date - year contracts 
+   DF_ByYearDelivery = dict(tuple(DF.groupby('Year_Delivery')))
+
+
+#########################################################################
+### Join columns into one and drop nan
+
+df.apply(lambda x: ','.join(x.dropna()), axis=1)
+
+#########################################################################
+### Replace columns with other data frame basen on some columns
+
+for Sub_project in LNG_production_capacity_Replacment['Sub-project (Oryginal)'].unique():
+    
+    TemporaryRawDF = LNG_production_capacity_AfterReplacement.query('`Sub-project` == @Sub_project')
+    LowIndexFromRaw = TemporaryRawDF.index[0]
+    HighIndexFromRaw = TemporaryRawDF.index[-1]
+    
+    LNG_production_capacity_AfterReplacement = pd.concat([ LNG_production_capacity_AfterReplacement.iloc[:LowIndexFromRaw,:],
+                                                           LNG_production_capacity_Replacment.query('`Sub-project (Oryginal)` == @Sub_project').drop(columns = ['Sub-project (Oryginal)']),
+                                                           LNG_production_capacity_AfterReplacement.iloc[HighIndexFromRaw:,:][1:] 
+                                               ])
+    
+    LNG_production_capacity_AfterReplacement.reset_index(drop=True, inplace = True)
+
+
+
 
 #########################################################################
 #########################################################################
@@ -93,89 +158,7 @@ VarDataFrom__currency_values.columns =  list( VarDataFrom__currency_values.colum
 
 
 
-###########################################
-### get var name
-
-   get_variable_name(Con_UK_04)          
-   from varname import nameof
-
-   nameof(Con_UK_04) 
-
-
-###################################
-
-[x for x in globals() if globals()[x] is df][0]
-
-
-################
-
-   for key,val in ResultsDIC['figConsumption'].items():
-      exec(key + '=val')
-
-
-
-##############
-
-   ### Set up return dictinary
-   for variable in RetrurnList:
-      RetrurnDIC[variable] = eval(variable)
-
-###
-
-   from varname import nameof
-    
-   nameof(SupplyObs)
-
-##################################################################################################
-
-
-
-
-
 
 pip install --user tensorflow==2.4.1
 
 
-
-
-
-
-
-
-##################
-# connect columns into one and drop nan
-
-df.apply(lambda x: ','.join(x.dropna()), axis=1)
-
-######################################################
-######################################################
-### replace columns with other data frame basen on some columns
-
-for Sub_project in LNG_production_capacity_Replacment['Sub-project (Oryginal)'].unique():
-    
-    TemporaryRawDF = LNG_production_capacity_AfterReplacement.query('`Sub-project` == @Sub_project')
-    LowIndexFromRaw = TemporaryRawDF.index[0]
-    HighIndexFromRaw = TemporaryRawDF.index[-1]
-    
-    LNG_production_capacity_AfterReplacement = pd.concat([ LNG_production_capacity_AfterReplacement.iloc[:LowIndexFromRaw,:],
-                                                           LNG_production_capacity_Replacment.query('`Sub-project (Oryginal)` == @Sub_project').drop(columns = ['Sub-project (Oryginal)']),
-                                                           LNG_production_capacity_AfterReplacement.iloc[HighIndexFromRaw:,:][1:] 
-                                               ])
-    
-    LNG_production_capacity_AfterReplacement.reset_index(drop=True, inplace = True)
-
-
-#####################################################
-#####################################################
-### from groupby to dicinary
-
-# Slice by delivery date - year contracts 
-   DF_ByYearDelivery = dict(tuple(DF.groupby('Year_Delivery')))
-
-
-###################################################
-### Sort Columns By Last Full Year Statistics
-
-   SortedColumnList_DF = list( DF.resample('Y').sum().sort_values(by = DF.resample('Y').sum().index[-2],axis = 1, ascending = False).columns )
-   Power_BE = Power_BE[SortedColumnList_DF]
- 
