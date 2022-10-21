@@ -42,3 +42,17 @@
 
    DF.apply(lambda x: ','.join(x.dropna()), axis=1)
 
+
+#########################################################################   
+### Function to extract code from GitHub
+
+def GetGitHubCode(GitUrl):
+
+    response = requests.get(GitUrl) #get data from json file located at specified URL 
+
+    if response.status_code == requests.codes.ok:
+        contentOfUrl = response.content
+        exec(contentOfUrl, globals() )
+    else:
+        print('Content was not found.')
+
