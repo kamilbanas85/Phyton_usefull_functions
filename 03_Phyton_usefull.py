@@ -55,4 +55,22 @@ def GetGitHubCode(GitUrl):
         exec(contentOfUrl, globals() )
     else:
         print('Content was not found.')
+         
+#########################################################################
+### File Path depends on system
+
+    if os.name == 'nt': # Windows
+        pathWithFileName = os.getcwd() + "\\dataset\\" + fileName
+    else:
+        pathWithFileName = os.getcwd() + "/dataset/" + fileName
+         
+         
+#########################################################################
+### Dictionary to csv with Pandas
+
+   # write
+   pd.DataFrame.from_dict(df, orient="index").to_csv(pathWithFileName, header=False)
+   
+   # read
+   pd.read_csv(pathWithFileName , header=None).set_index(0).squeeze().to_dict()
 
