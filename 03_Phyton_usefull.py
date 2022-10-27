@@ -72,5 +72,5 @@ def GetGitHubCode(GitUrl):
    pd.DataFrame.from_dict(df, orient="index").to_csv(pathWithFileName, header=False)
    
    # read
-   pd.read_csv(pathWithFileName , header=None).set_index(0).squeeze().to_dict()
+   pd.read_csv(pathWithFileName, header=None, dtype={0: int, 1:str}).set_index(0).squeeze().to_dict()
 
