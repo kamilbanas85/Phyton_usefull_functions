@@ -21,8 +21,12 @@
 ## Duplicates
 
 def ShowDupicates(df):
-
 	return df[df.duplicated(keep=False)]	
+
+# on index
+
+def ShowDupicatesOnIndex(df):
+	return df[df.index.duplicated(keep=False)]
 
 
 ##################################################################################
