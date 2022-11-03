@@ -1,3 +1,17 @@
+
+dates = Con_DE.index.to_list()
+mytotaldates = {i:datetime.datetime.strftime(x, "%d-%m-%Y") for i,x in enumerate(dates)}
+a = (list(mytotaldates.keys()))
+
+ConHist_Marks = {key:value for key, value in mytotaldates.items() if datetime.datetime.strptime(value, "%d-%m-%Y").month == 1 and 
+                                                                     datetime.datetime.strptime(value, "%d-%m-%Y").day == 1}
+
+
+
+
+
+
+
 import dash
 
 ## add in case of pages !!!!!!!!!!!!!!!!!!!!!!
