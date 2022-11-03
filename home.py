@@ -3,13 +3,31 @@ dates = Con_DE.index.to_list()
 mytotaldates = {i:datetime.datetime.strftime(x, "%d-%m-%Y") for i,x in enumerate(dates)}
 a = (list(mytotaldates.keys()))
 
-ConHist_Marks = {key:value for key, value in mytotaldates.items() if datetime.datetime.strptime(value, "%d-%m-%Y").month == 1 and 
+
+Hist_Marks_1d = {key:value for key, value in mytotaldates.items() if datetime.datetime.strptime(value, "%d-%m-%Y").month == 1 and 
                                                                      datetime.datetime.strptime(value, "%d-%m-%Y").day == 1}
+Hist_Marks_1d[0] = ''
+Hist_Marks_1d[len(dates)-1] = ''
 
 
 
-
-
+               dcc.RangeSlider( id=f"Slider_History_1d",
+                                marks = Hist_Marks_1d,
+                                min=0,
+                                max=len(dates)-1,
+                                value=[0, len(dates)-1 ]
+                      )
+                ],
+                style={'width': '90%',  'display': 'inline-block', 'vertical-align': 'top'} ),
+      
+      
+      
+    print(Slider)
+    DF = ( pd.read_json(Data_from_Store).copy() )\
+                 .iloc[ Slider[0] : Slider[1] ]
+    print(DF)
+    
+    
 
 
 import dash
