@@ -1,31 +1,159 @@
 
-dates = Con_DE.index.to_list()
-mytotaldates = {i:datetime.datetime.strftime(x, "%d-%m-%Y") for i,x in enumerate(dates)}
-a = (list(mytotaldates.keys()))
+#%% Download Data
+
+from Download_And_Porcess_Data import Download_And_Process_Data
+ResultsDIC = Download_And_Process_Data(Authenication = 'trusted', returnData = True)  
+# Authenication =  'trusted'  or  'password'  or  'trusted-azure'
+
+#%% Ectract Data <- assign variables to them names from dictinary
+
+for key,val in ResultsDIC.items():
+      exec(key + '=val')
 
 
-Hist_Marks_1d = {key:value for key, value in mytotaldates.items() if datetime.datetime.strptime(value, "%d-%m-%Y").month == 1 and 
-                                                                     datetime.datetime.strptime(value, "%d-%m-%Y").day == 1}
-Hist_Marks_1d[0] = ''
-Hist_Marks_1d[len(dates)-1] = ''
+#%% Write data to csv file
+
+def write_dict_to_csv(df, fileName):
+    
+    if os.name == 'nt': # Windows
+        pathWithFileName = os.getcwd() + "\\assets\\dataset\\" + fileName
+    else:
+        pathWithFileName = os.getcwd() + "/assets/dataset/" + fileName
+
+    # write data fo csv file
+    pd.DataFrame.from_dict(df, orient="index").to_csv(pathWithFileName, header=False)
 
 
 
-               dcc.RangeSlider( id=f"Slider_History_1d",
-                                marks = Hist_Marks_1d,
-                                min=0,
-                                max=len(dates)-1,
-                                value=[0, len(dates)-1 ]
+def write_list_to_csv(DataList, fileName):
+    
+    if os.name == 'nt': # Windows
+        pathWithFileName = os.getcwd() + "\\assets\\dataset\\" + fileName
+    else:
+        pathWithFileName = os.getcwd() + "/assets/dataset/" + fileName
+
+    # write data fo csv file
+    pd.DataFrame(DataList).to_csv(pathWithFileName, header=False, index=False)
+
+
+
+def CreateMarks( DF ):
+    
+    MarksAll = {i:datetime.datetime.strftime(x, "%d-%m-%Y") for i,x in enumerate(DF.index.to_list())}
+    MarksMax = len(MarksAll) -1
+    
+    Marks = {key:value[-4:] for key, value in MarksAll.items() if datetime.datetime.strptime(value, "%d-%m-%Y").month == 1 and 
+                                                                  datetime.datetime.strptime(value, "%d-%m-%Y").day == 1}
+    try:
+        Marks[0]
+    except:
+        Marks[0] = ''  
+    
+    
+    try:
+        Marks[MarksMax]
+    except:
+        Marks[MarksMax] = ''
+    
+    return Marks
+
+
+
+def CreateAndWriteMarks(CountryShort, Con_DF, Power_DF = None, PowerYears_DF = None, includePower = True):
+    
+    ConHist_Marks = CreateMarks(Con_DF)
+    write_dict_to_csv(ConHist_Marks, f"ConHist_Marks_{CountryShort}.csv")
+   
+    
+    if includePower:
+        
+        Power_Marks = CreateMarks(Power_DF)    
+        PowerSources = PowerYears_DF['Sector'].unique()
+    
+        write_dict_to_csv(Power_Marks, f"Power_Marks_{CountryShort}.csv")  
+        write_list_to_csv(PowerSources, f"PowerSources_{CountryShort}.csv")
+
+
+
+#%% Crete Marks For Plots
+
+CreateAndWriteMarks('EU', Con_EU, includePower = False)
+
+
+
+
+########################################################
+
+#%% Read Data From Disk
+
+
+def read_Marks(fileName):
+    
+    if os.name == 'nt': # Windows
+        pathWithFileName = os.getcwd() + "\\assets\\dataset\\" + fileName
+    else:
+        pathWithFileName = os.getcwd() + "/assets/dataset/" + fileName
+    
+    Marks = pd.read_csv(pathWithFileName, header=None, dtype={0: int, 1:str})\
+                         .set_index(0).squeeze().to_dict()
+    
+    Marks = { k:'' if pd.isna(v) else v for k,v in Marks.items()  }                     
+    
+    return Marks
+
+
+def read_list_to_data(fileName, dataType = 'int'):
+    
+    if os.name == 'nt': # Windows
+        pathWithFileName = os.getcwd() + "\\assets\\dataset\\" + fileName
+    else:
+        pathWithFileName = os.getcwd() + "/assets/dataset/" + fileName
+    
+    DataList = pd.read_csv(pathWithFileName, header=None, dtype={0: dataType})\
+                        .squeeze().to_list()
+
+    return tuple(DataList)
+
+
+def CreteStartAndMaxMarks(MarksDic):
+    
+    MarksStartValue = list({key:value for key, value in MarksDic.items() if value == str(datetime.datetime.now().year - 3)}.keys())[0]
+    MarksMax = max( list(MarksDic.keys() ) )
+    
+    return MarksStartValue, MarksMax
+
+
+
+ConHist_Marks = read_Marks(f"ConHist_Marks_{CountryShort}.csv")
+
+
+
+#######################################
+
+
+ dcc.RangeSlider( id=f"Slider_ConHist_{CountryShort}",
+                                   marks = ConHist_Marks,
+                                   min=0,
+                                   max=ConHist_MarksMax,
+                                   value=[ConHist_MarksStartValue, ConHist_MarksMax ]
                       )
-                ],
-                style={'width': '90%',  'display': 'inline-block', 'vertical-align': 'top'} ),
-      
-      
-      
-    print(Slider)
-    DF = ( pd.read_json(Data_from_Store).copy() )\
-                 .iloc[ Slider[0] : Slider[1] ]
-    print(DF)
+  
+ #########################################
+
+    DF = pd.read_json(Con_from_Store).copy()*scalerUnit
+        
+    if Slider[1] == DF.shape[0]-1:
+        DF = DF.iloc[ Slider[0] : Slider[1]+1 ]
+    else:
+        DF = DF.iloc[ Slider[0] : Slider[1] ]
+
+
+
+#########################################
+
+
+
+
     
     
 
