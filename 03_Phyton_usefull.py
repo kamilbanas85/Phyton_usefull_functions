@@ -73,4 +73,11 @@ def GetGitHubCode(GitUrl):
    
    # read
    pd.read_csv(pathWithFileName, header=None, dtype={0: int, 1:str}).set_index(0).squeeze().to_dict()
+   
+
+#########################################################################
+### Unique values based on few columns
+   
+   DF.groupby(by=['col1','col2'], as_index=False).first()
+
 
