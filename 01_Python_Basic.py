@@ -219,6 +219,12 @@ def ShowDupicatesOnIndex(df):
 
    DF = DF.assign(  **{f'WTI_{AveragePeriod}': lambda x: x.resample('M').mean()['WTI'].rolling( AveragePeriod ).mean()}  )
 
+### for selected column - col1, grouped by col2
+			       
+DF.assign( **{'half_std' : np.nan} )\
+  .assign( **{
+              'half_std' : lambda x: x[['col1','col2']].groupby(x.col2).transform(lambda y: 0.5*y.std() )
+             } )		
 
 ##################################################################################
 ### String in few lines
