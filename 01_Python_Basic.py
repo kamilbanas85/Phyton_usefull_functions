@@ -105,8 +105,6 @@ def ShowDupicatesOnIndex(df):
   # columns start with variable
   var = 'xx			       
   DF.filter(regex=rf'^{var}')
-     # and remove the substring:
-     DFsub.columns = DFsub.columns.str.lstrip(f"{var}")
 			       	       
    # select rows containing 'bbi'
 
