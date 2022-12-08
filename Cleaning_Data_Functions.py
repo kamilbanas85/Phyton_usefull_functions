@@ -1,6 +1,26 @@
 import pandas as pd
 
 ######################################################################
+def RemoveTopAndBottomRowsWitAllNA(DFinput):
+        
+    DF = DFinput.copy()
+    for index, row in  DF.iterrows():
+        if pd.isnull( row ).all() :
+            DF = DF.iloc[1:]
+        else :
+            break    # break here
+        
+    # itereate in diffrent order
+    for index, row in  DF[::-1].iterrows():
+        if pd.isnull( row ).all() :
+            DF = DF.iloc[:-1]
+        else :
+            break    # break here
+  
+    return DF
+
+
+######################################################################
 
 def RemoveTopAndBottomRowsWithNA(DF, ColName):
     
