@@ -1,6 +1,7 @@
 import pandas as pd
 
 ######################################################################
+
 def RemoveTopAndBottomRowsWitAllNA(DFinput):
         
     DF = DFinput.copy()
