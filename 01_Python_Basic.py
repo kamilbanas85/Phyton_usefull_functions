@@ -101,10 +101,18 @@ def ShowDupicatesOnIndex(df):
 ### select columns by regular expression
 
    DF.filter(regex='e$', axis=1)
-
+   
+  # columns start with variable
+  var = 'xx			       
+  DF.filter(regex=rf'^{var}')
+     # and remove the substring:
+     DFsub.columns = DFsub.columns.str.lstrip(f"{var}")
+			       	       
    # select rows containing 'bbi'
 
    DF.filter(like='bbi', axis=0)
+			       
+			     
 
 			       
 #########################################################################			       
@@ -139,7 +147,14 @@ def ShowDupicatesOnIndex(df):
    # or 
    DF.columns =  list( DF.columns.get_level_values(1).values )			       
 			       
-			       		       
+#########################################################################################
+### Merge multindex after pivot_table
+
+			       
+   DF_columnar = DF.pivot_table(index = 'Date', columns = ["col1"], values = ["col2",  "col3", "col4"]) 
+   DF_columnar.columns = DF_columnar.columns.map(lambda index: f'{index[1]}_{index[0]}')			       
+
+			       
 #########################################################################
 ### Extract date from string:
 
