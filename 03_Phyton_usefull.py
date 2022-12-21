@@ -81,3 +81,47 @@ def GetGitHubCode(GitUrl):
    DF.groupby(by=['col1','col2'], as_index=False).first()
 
 
+   
+      def RemoveLeapYear(DF):
+       
+       DFi = DF.copy()
+       DFi = DFi[~((DFi.index.month == 2) & (DFi.index.day == 29))]
+       
+       return DFi
+   
+#########################################################################
+### Temperature Month Statistics
+
+   
+   def GetTempAndHDDmothStatistics(DF, TemperatureVar ):
+       
+      # 'DF' dataFrame with datetime index and 'TemperatureVar' temperature variable
+       
+      # rempove '29-02' date
+      DFin = DF.copy()
+      DFin = RemoveLeapYear(DFin)
+      
+      # add variables:
+
+      DFin = DFin.assign(
+                          Year = lambda x: x.index.year,
+                          Month = lambda x: x.index.month,
+                          HDD  = lambda x: np.where( x['Temp_avg'] <= 15,
+                                                   ( 18-x['Temp_avg'] ).round(1).astype(float), 0 )
+                          )
+       
+      # define aggregation function:
+      def my_agg(x):
+            names = {
+                'HDD_sum': x['HDD'].sum(),
+                'Temp_mean':  x[ TemperatureVar ].mean()}
+        
+            return pd.Series(names, index=['HDD_sum', 'Temp_mean'])
+    
+      DFstatistics = DFin.groupby(["Year", "Month"]).apply(my_agg).groupby(["Month"]).agg(['min','mean','max'])
+
+      return DFstatistics
+
+
+    GetTempAndHDDmothStatistics(TempCityHistory, 'Temp_avg' )
+ 
