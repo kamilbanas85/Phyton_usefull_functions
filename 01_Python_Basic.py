@@ -221,11 +221,11 @@ def ShowDupicatesOnIndex(df):
 # with normal names
 
    DF = DF\
-	.assign( mean = np.nan, A = np.nan, B = np.nan } )\
-	.assign( mean = lambda x: x.groupby( x.index.month ).transform('mean'),
-		 A    = lambda x: x.groupby( x.index.month ).transform( lambda y: y.quantile(0.25) ),
-  		 B    = lambda x: x.groupby( x.index.month ).transform( lambda y: y.quantile(0.5) )
-		})
+	.assign( mean = np.nan, A = np.nan, B = np.nan )\
+	.assign( mean = lambda x: x['colName'].groupby( x.index.month ).transform('mean'),
+		 A    = lambda x: x['colName'].groupby( x.index.month ).transform( lambda y: y.quantile(0.25) ),
+  		 B    = lambda x: x['colName'].groupby( [x.index.year, x.index.month] ).transform( lambda y: y.quantile(0.5) )
+		)
 
 			       
 # assign variable with variable name
