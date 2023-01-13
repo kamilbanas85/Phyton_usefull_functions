@@ -20,13 +20,17 @@
 ####################################################
 ## Duplicates
 
-def ShowDupicates(df):
+    def ShowDupicates(df):
 	return df[df.duplicated(keep=False)]	
 
 # on index
 
-def ShowDupicatesOnIndex(df):
+    def ShowDupicatesOnIndex(df):
 	return df[df.index.duplicated(keep=False)]
+
+# drop duplicated index - select last
+
+   DF = DF.groupby(DF.index).last()   
 
 
 ##################################################################################
