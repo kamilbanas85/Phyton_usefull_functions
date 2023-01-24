@@ -86,7 +86,7 @@ def is_list_of_strings(lst):
         
 #########################################################
 
-def CreateDummyForColumns(DFwithoutDummy, DummyForColumns):
+def CreateDummyForColumns(DFwithoutDummy, DummyForColumns, drop_first=True):
     
     DF = DFwithoutDummy.copy()
     
@@ -94,10 +94,10 @@ def CreateDummyForColumns(DFwithoutDummy, DummyForColumns):
     if DummyForColumns is not None:
         if is_list_of_strings(DummyForColumns):
             DF = pd.get_dummies(DF, columns = DummyForColumns,\
-                      prefix = [ colName + '_' for colName in DummyForColumns], drop_first=True )
+                      prefix = [ colName + '_' for colName in DummyForColumns], drop_first=drop_first )
         else:
             DF = pd.get_dummies(DF, columns = [DummyForColumns],\
-                                prefix = [DummyForColumns + '_'], drop_first=True )
+                                prefix = [DummyForColumns + '_'], drop_first=drop_first )
     
     return DF
 
