@@ -12,7 +12,8 @@ import re
 def DevideOnXandY_CreateDummies(DataDF,
                                 DependentVar,
                                 IndependentVar,
-                                DummyForCol = None):
+                                DummyForCol = None,
+                                drop_first=True):
     '''
     Function devide data on predictors 'X' and taget 'y' sets. 
     If needed it add dummies into predictors. 
@@ -33,7 +34,7 @@ def DevideOnXandY_CreateDummies(DataDF,
     DF = DataDF.copy().loc[:, [DependentVar] + IndependentVar]   
     
     # CREATE DUMMY VARIABLES FOR 'DummyForCol' COLUMNS
-    DF = CreateDummyForColumns(DF, DummyForCol)                    
+    DF = CreateDummyForColumns(DF, DummyForCol, drop_first = drop_first)                    
    
     ### SPLIT INTO DEPENDENT AND INDEPANEDNT VARIABLES
     DF_y = DF.copy().loc[:, [DependentVar] ]
