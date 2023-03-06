@@ -300,4 +300,14 @@ DF.assign( **{'half_std' : np.nan} )\
    for row in Df.iterrows():
       if 'Week' in str(row[1][0]):
 
-	       
+########################################################################
+### Add lst with string elements to SQL query
+			       
+   Country_List = ['PL', 'DE']
+			       
+   f"""
+           SELECT *
+	   FROM Country as c
+           WHERE c.[country] in ({', '.join(['"'+str(x)+'"' for x in Country_List])})
+    """.replace('\n', ' ')   			       
+			       
