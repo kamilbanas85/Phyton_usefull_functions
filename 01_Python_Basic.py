@@ -308,6 +308,6 @@ DF.assign( **{'half_std' : np.nan} )\
    f"""
            SELECT *
 	   FROM Country as c
-           WHERE c.[country] in ({', '.join(['"'+str(x)+'"' for x in Country_List])})
+           WHERE c.[country] in ({', '.join(["'"+str(x)+"'" for x in Country_List])})
     """.replace('\n', ' ')   			       
 			       
