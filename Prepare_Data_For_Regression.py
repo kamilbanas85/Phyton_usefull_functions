@@ -281,13 +281,15 @@ def KeepBasicIndeptVarAndDummies(DFwithAllVars, SelectedVarsList,\
                                  KeepDummies = True):
     
     AllVarList = DFwithAllVars.columns.to_list()
+    DummiesFromAll = []
     
     # Select Subset with lags or dummies:    
     VarsFromAllWithLags = SelectLagsVariables( AllVarList )
     VarsFromSelectedWithLags = SelectLagsVariables(  SelectedVarsList )
-    DummiesFromAll = SelectDummiesVariables( AllVarList, DummyForCol )
-    DummiesromSelected = SelectDummiesVariables( SelectedVarsList, DummyForCol  )
-
+    if DummyForCol is not None:
+        DummiesFromAll = SelectDummiesVariables( AllVarList, DummyForCol )
+        DummiesromSelected = SelectDummiesVariables( SelectedVarsList, DummyForCol  )
+        
 
     if KeepBasicIndept and KeepDummies:       
         BasicIndept = list( set(AllVarList) - set(VarsFromAllWithLags) - set(DummiesFromAll) )
