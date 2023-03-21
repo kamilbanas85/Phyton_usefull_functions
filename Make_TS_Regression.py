@@ -49,9 +49,11 @@ def MakeTSforecast(Data_X, Model, DependentVar,
              
     # Make Revers Scaling on Obtained Results:
     if Scaler_y is not None:      
-        yhat  = Scaler_y.inverse_transform(yhat)
+        #yhat  = Scaler_y.inverse_transform(yhat)
+        yhat  = Scaler_y.inverse_transform( yhat.reshape(1, -1) )
         DF_X  = Scaler_X.inverse_transform(DF_X)
     
+        
     # Make DF from yhat:
     Index = Data_X.index.to_frame()
     yhat_DF  = pd.DataFrame(yhat,\
