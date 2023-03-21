@@ -133,17 +133,19 @@ def MakeANNfinalData(Model,\
                      yhat_Test_DF = None,\
                      yhat_Forecast_DF = None):
     
-    #  Train_X_Scaled, Val_X_Scaled, Test_X_Scaled should be shaped when RNN is used  
+       #  Train_X_Scaled, Val_X_Scaled, Test_X_Scaled should be shaped when RNN is used  
     
     MainDF_WithModeledData = MainDF.copy()    
         
     # Take fitted data and make a prediction
     yhat_Train_sld = Model.predict(Train_X_Scaled)
-    yhat_Val_sld   = Model.predict(Val_X_Scaled)
+    if Val_X_Scaled is not None:
+        yhat_Val_sld   = Model.predict(Val_X_Scaled)
     
     # INVERT SCALING
-    yhat_Train = Scaler_y.inverse_transform(yhat_Train_sld)
-    yhat_Val   = Scaler_y.inverse_transform(yhat_Val_sld)
+    yhat_Train = Scaler_y.inverse_transform(yhat_Train_sld.reshape(1, -1) ).reshape(-1, 1)
+    if Val_X_Scaled is not None:
+        yhat_Val   = Scaler_y.inverse_transform(yhat_Val_sld.reshape(1, -1) ).reshape(-1, 1)
   
     
     ### MERGE Fitted and Predicted Data to Main DataFrame
@@ -152,14 +154,18 @@ def MakeANNfinalData(Model,\
     yhat_Train_DF = pd.DataFrame(yhat_Train,\
                                      index = Train_X_Scaled.index,\
                                      columns = ['Fitted-Train'])
-    yhat_Val_DF   = pd.DataFrame(yhat_Val,\
+    if Val_X_Scaled is not None:
+        yhat_Val_DF   = pd.DataFrame(yhat_Val,\
                                      index = Val_X_Scaled.index,\
                                      columns = ['Fitted-Validation'])
         
     
     # Merge MainDF with yhats
     MainDF_WithModeledData = MainDF_WithModeledData\
-                      .merge(yhat_Train_DF, how='left', on='Date')\
+                      .merge(yhat_Train_DF, how='left', on='Date')
+    
+    if Val_X_Scaled is not None:
+        MainDF_WithModeledData = MainDF_WithModeledData\
                       .merge(yhat_Val_DF,   how='left', on='Date')
                       
     if yhat_Test_DF is not None:
