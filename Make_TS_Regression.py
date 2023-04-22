@@ -15,7 +15,6 @@ def MakeTSforecast(Data_X, Model, DependentVar,
                    Test_or_Forecast = 'Test'):
     
     
-    DF_X = Data_X.copy()
     if Intecept:
         DF_X = sm.add_constant(DF_X)
        #DF_X.insert(0, 'const',  1.0)
@@ -35,7 +34,7 @@ def MakeTSforecast(Data_X, Model, DependentVar,
         for step in range(len(DF_X)):
     
             DF_X_CurrentStep = DF_X.iloc[[step],:]
-            yhat_CurrentStep = Model.predict(DF_X_CurrentStep)[0]
+            yhat_CurrentStep = Model.predict(DF_X_CurrentStep).item()
             yhat.append(yhat_CurrentStep)
 
             for VarName, LagNr in y_LagsList.items():                
@@ -46,19 +45,22 @@ def MakeTSforecast(Data_X, Model, DependentVar,
     else:        
         yhat = Model.predict(DF_X)
 
-             
+
     # Make Revers Scaling on Obtained Results:
     if Scaler_y is not None:      
         #yhat  = Scaler_y.inverse_transform(yhat)
-        yhat  = Scaler_y.inverse_transform( yhat.reshape(1, -1) ).reshape(-1, 1)
+        yhat  = Scaler_y.inverse_transform( np.array(yhat).reshape(1, -1) ).reshape(-1, 1)
         DF_X  = Scaler_X.inverse_transform(DF_X)
+        
+        DF_X = pd.DataFrame(DF_X,\
+                            index = Data_X.index,\
+                            columns = Data_X.columns)
     
         
     # Make DF from yhat:
-    Index = Data_X.index.to_frame()
     yhat_DF  = pd.DataFrame(yhat,\
-                                 index = Index.index,\
-                                 columns = [f'Predicted-{Test_or_Forecast}'])
+                            index = Data_X.index,\
+                            columns = [f'Predicted-{Test_or_Forecast}'])
     
     
     return (yhat_DF, DF_X)
