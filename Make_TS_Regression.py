@@ -14,7 +14,7 @@ def MakeTSforecast(Data_X, Model, DependentVar,
                    Scaler_y = None, Scaler_X = None,
                    Test_or_Forecast = 'Test'):
     
-    
+    DF_X = Data_X.copy()
     if Intecept:
         DF_X = sm.add_constant(DF_X)
        #DF_X.insert(0, 'const',  1.0)
