@@ -188,67 +188,6 @@ def MakeANNfinalData(Model,\
     return MainDF_WithModeledData
 
 
-#########################################################
-
-def MakeFinalDataFull(Model,\
-                      Train_X_Scaled, Val_X_Scaled,\
-                      Scaler_y,\
-                      MainDF,\
-                      TestSplitInd, ValSplitInd,\
-                      yhat_Test_DF = None,\
-                      yhat_Forecast_DF = None):
-    
-    #  Train_X_Scaled, Val_X_Scaled, Test_X_Scaled should be shaped when RNN is used  
-    
-    MainDF_WithModeledData = MainDF.copy()
-        
-    # Take fitted data and make a prediction
-    yhat_Train_sld = Model.predict(Train_X_Scaled)
-    yhat_Val_sld   = Model.predict(Val_X_Scaled)
-    
-    # INVERT SCALING
-    yhat_Train = Scaler_y.inverse_transform(yhat_Train_sld)
-    yhat_Val   = Scaler_y.inverse_transform(yhat_Val_sld)
-  
-    
-    ### MERGE Fitted and Predicted Data to Main DataFrame
-    
-    # Take Index of Train, Val and Test sets 
-    Index__MainDF = MainDF_WithModeledData.index.to_frame()
-    Index_Train, Index_Test = TrainTestSets(Index__MainDF, TestSplitInd)
-    Index_Train, Index_Val  = TrainTestSets(Index_Train, ValSplitInd)
-
-    # Make DataFrames from yhat:
-    yhat_Train_DF = pd.DataFrame(yhat_Train,\
-                                     index = Index_Train.index,\
-                                     columns = ['Fitted-Train'])
-    yhat_Val_DF   = pd.DataFrame(yhat_Val,\
-                                     index = Index_Val.index,\
-                                     columns = ['Fitted-Validation'])
-        
-    
-    # Merge MainDF with yhats
-    MainDF_WithModeledData = MainDF_WithModeledData\
-                              .merge(yhat_Train_DF, how='left', on='Date')\
-                              .merge(yhat_Val_DF,   how='left', on='Date')
-                      
-    if yhat_Test_DF is not None:
-        
-        yhat_Test_DF__IN = yhat_Test_DF.copy()
-        yhat_Test_DF__IN.columns.values[0] = 'Predicted-Test'
-        MainDF_WithModeledData = MainDF_WithModeledData\
-                      .merge(yhat_Test_DF__IN,  how='left', on='Date')
-
-    if yhat_Forecast_DF is not None:
-        
-        yhat_Forecast_DF__IN = yhat_Forecast_DF.copy()
-        yhat_Forecast_DF__IN.columns.values[0] = 'Forecast'
-        MainDF_WithModeledData = pd.concat( [MainDF_WithModeledData,\
-                                               yhat_Forecast_DF__IN] )
-                      
-                      
-    return MainDF_WithModeledData
-  
 ############################################################################
 ############################################################################
 ############################################################################
@@ -293,15 +232,18 @@ def MakeFinalDataFull(Model,\
     
     # Merge MainDF with yhats
     MainDF_WithModeledData = MainDF_WithModeledData\
-                              .merge(yhat_Train_DF, how='left', on='Date')\
-                              .merge(yhat_Val_DF,   how='left', on='Date')
-                      
+    #                          .merge(yhat_Train_DF, how='left', on='Date')\
+    #                          .merge(yhat_Val_DF,   how='left', on='Date')
+                               .join(yhat_Train_DF, how='left')\
+                               .join(yhat_Val_DF,   how='left')
+                                            
     if yhat_Test_DF is not None:
         
         yhat_Test_DF__IN = yhat_Test_DF.copy()
         yhat_Test_DF__IN.columns.values[0] = 'Predicted-Test'
         MainDF_WithModeledData = MainDF_WithModeledData\
-                      .merge(yhat_Test_DF__IN,  how='left', on='Date')
+        #              .merge(yhat_Test_DF__IN,  how='left', on='Date')
+                      .join(yhat_Test_DF__IN,  how='left')
 
     if yhat_Forecast_DF is not None:
         
