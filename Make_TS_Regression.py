@@ -164,18 +164,21 @@ def MakeANNfinalData(Model,\
     
     # Merge MainDF with yhats
     MainDF_WithModeledData = MainDF_WithModeledData\
-                      .merge(yhat_Train_DF, how='left', on='Date')
-    
+                      .join(yhat_Train_DF, how='left')
+   #                   .merge(yhat_Train_DF, how='left', on='Date')
+
     if Val_X_Scaled is not None:
         MainDF_WithModeledData = MainDF_WithModeledData\
-                      .merge(yhat_Val_DF,   how='left', on='Date')
-                      
+                      .join(yhat_Val_DF,   how='left')
+   #                   .merge(yhat_Val_DF,   how='left', on='Date')
+
     if yhat_Test_DF is not None:
         
         yhat_Test_DF__IN = yhat_Test_DF.copy()        
         yhat_Test_DF__IN.columns.values[0] = 'Predicted-Test'        
         MainDF_WithModeledData = MainDF_WithModeledData\
-                      .merge(yhat_Test_DF__IN,  how='left', on='Date')
+                      .join(yhat_Test_DF__IN,  how='left')
+   #                 .merge(yhat_Test_DF__IN,  how='left', on='Date')
 
     if yhat_Forecast_DF is not None:
         
@@ -232,19 +235,19 @@ def MakeFinalDataFull(Model,\
     
     # Merge MainDF with yhats
     MainDF_WithModeledData = MainDF_WithModeledData\
-    #                          .merge(yhat_Train_DF, how='left', on='Date')\
-    #                          .merge(yhat_Val_DF,   how='left', on='Date')
                                .join(yhat_Train_DF, how='left')\
                                .join(yhat_Val_DF,   how='left')
+    #                          .merge(yhat_Train_DF, how='left', on='Date')\
+    #                          .merge(yhat_Val_DF,   how='left', on='Date')
                                             
     if yhat_Test_DF is not None:
         
         yhat_Test_DF__IN = yhat_Test_DF.copy()
         yhat_Test_DF__IN.columns.values[0] = 'Predicted-Test'
         MainDF_WithModeledData = MainDF_WithModeledData\
+                       .join(yhat_Test_DF__IN,  how='left')
         #              .merge(yhat_Test_DF__IN,  how='left', on='Date')
-                      .join(yhat_Test_DF__IN,  how='left')
-
+        
     if yhat_Forecast_DF is not None:
         
         yhat_Forecast_DF__IN = yhat_Forecast_DF.copy()
