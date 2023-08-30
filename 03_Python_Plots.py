@@ -9,7 +9,6 @@ def create_bar_stacked_plot(df_ts):
              
     df_ts.plot( kind='bar', stacked=True, ax=ax)
                         
-    df_ts =      Demand_LNG_without_Europe_per_country               
     # Make most of the ticklabels empty so the labels don't get too crowded
     ticklabels = ['']*len(df_ts.index)
     # Every 4th ticklable shows the month and day
