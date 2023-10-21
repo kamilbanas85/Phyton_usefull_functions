@@ -10,7 +10,7 @@ from IPython.display import display
 ##################################################################################
 ###
 
-def plot_grid_search(clf):
+def plot_grid_search(clf, for_github = False):
     """Plot as many graphs as parameters are in the grid search results.
 
     Each graph has the values of each parameter in the X axis and the Score in the Y axis.
@@ -110,7 +110,11 @@ def plot_grid_search(clf):
                                                                     '}', '')),
                       hovermode='closest',
                       template='none')
-    fig.show()
+    
+    if for_github:
+        fig.show("png")
+    else:
+        fig.show()
 
 
 ##################################################################################
