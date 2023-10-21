@@ -112,7 +112,7 @@ def plot_grid_search(clf, for_github = False):
                       template='none')
     
     if for_github:
-        fig.show("png")
+        fig.show("svg")
     else:
         fig.show()
 
