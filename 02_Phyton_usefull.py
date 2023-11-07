@@ -124,4 +124,11 @@ def GetGitHubCode(GitUrl):
 
 
     GetTempAndHDDmothStatistics(TempCityHistory, 'Temp_avg' )
+
+
+
+#########################################################################
+### Var Name to string
+
+   f'{varName=}'.split('=')[0]
  
