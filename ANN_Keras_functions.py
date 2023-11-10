@@ -11,7 +11,7 @@ from tensorflow.keras.layers import BatchNormalization
 import tensorflow as tf
 from keras import optimizers
 from keras.layers import Dropout
-from keras.constraints import maxnorm
+from keras.constraints import MaxNorm
 
 ##########################################################
 
@@ -62,7 +62,7 @@ def CreateFeedForwardModel(HiddenLayersNumber=1,\
         model.add(Dense(NeuronsNumber, input_shape = InputShape,\
                         activation = ActivationFun,\
                         kernel_initializer = init,\
-                        kernel_constraint = maxnorm(constraintValue) ) )
+                        kernel_constraint = MaxNorm(constraintValue) ) )
     else:
         model.add(Dense(NeuronsNumber, input_shape = InputShape,\
                         activation = ActivationFun,\
@@ -77,7 +77,7 @@ def CreateFeedForwardModel(HiddenLayersNumber=1,\
             model.add(Dense(NeuronsNumber,\
                             activation=ActivationFun,\
                             kernel_initializer = init,\
-                            kernel_constraint = maxnorm(constraintValue) ) )
+                            kernel_constraint = MaxNorm(constraintValue) ) )
         else:
             model.add(Dense(NeuronsNumber,\
                             activation=ActivationFun,\
