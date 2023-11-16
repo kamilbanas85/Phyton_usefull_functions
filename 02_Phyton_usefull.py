@@ -131,4 +131,9 @@ def GetGitHubCode(GitUrl):
 ### Var Name to string
 
    f'{varName=}'.split('=')[0]
+
+#########################################################################
+### interpolate only between values
+
+   DF.interpolate(limit_direction='both', limit_area='inside')
  
