@@ -28,6 +28,9 @@ def plot_grid_search(clf, for_github = False):
     # Get parameters
     parameters=cv_results['params'][0].keys()
 
+    parms_to_remove_if_ann = ['model__regression_type', 'model__input_shape', 'model__activation_out', 'model__output_nodes_nr']
+    parameters = [ele for ele in parameters if ele not in parms_to_remove_if_ann]
+    
     # Calculate the number of rows and columns necessary
     rows = -(-len(parameters) // 2)
     columns = min(len(parameters), 2)
