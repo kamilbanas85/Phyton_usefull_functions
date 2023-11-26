@@ -17,7 +17,7 @@ from keras.constraints import MaxNorm
 ###########################################################
 ###
 
-def PlotLossTrainVsVal(History):
+def plot_loss_train_vs_val(History):
     
     plt.plot(History.history['val_loss'], 'r',  label='test')
     plt.plot(History.history['loss'], 'b',label='train')
@@ -30,7 +30,7 @@ def PlotLossTrainVsVal(History):
 ###########################################################
 ### 
 
-def PlotAccuracyTrainVsVal(History):
+def plot_accuracy_train_vs_val(History):
     
     plt.plot(History.history['val_accuracy'], 'r',  label='test')
     plt.plot(History.history['accuracy'], 'b',label='train')
