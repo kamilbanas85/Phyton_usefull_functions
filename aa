@@ -259,3 +259,222 @@ def PrepareDataForLSTMregression(DataDF, DependentVar, IndependentVar,\
     return tuple(DataToReturn)
 
 
+#############################################################
+#############################################################
+#############################################################
+
+#%% import libraries
+
+import numpy as np
+import pandas as pd
+import os
+import requests
+import matplotlib.pyplot as plt
+
+
+from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
+
+from scikeras.wrappers import KerasRegressor
+from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, TimeSeriesSplit
+from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
+
+
+#%%
+
+MainDirectory = os.path.abspath(os.path.dirname(__file__))
+os.chdir(MainDirectory)
+
+FunctionsDirectory = 'XXX'
+os.chdir(FunctionsDirectory)
+
+from Download_Data_From_sql_DB import Download_Data_From_AzureDB_Alchemy
+
+from Cleaning_Data_Functions import *
+from TimeSeries_Forcasting_Functions import *
+from Prepare_Data_For_Regression import *
+from Make_TS_Regression import *
+from Goodness_Of_Fit import *
+from ANN_Keras_functions import *
+from Feature_Selection import *
+from Multicollinearity_Check_Functions import *
+from CV_functions import *
+
+os.chdir(MainDirectory)
+
+
+#######################################################
+#%% Read the CSV file
+consumption_raw = pd.read_csv('Data.csv', parse_dates=['dateCET'])
+
+#######################################################
+#%%
+
+consumption = consumption_raw[['dateCET','Consumption', 'Temp_avg', 'windspeed_10m_max']]
+consumption.set_index('dateCET', inplace=True)
+
+consumption[['Consumption']].plot()
+
+consumption = consumption.asfreq('D')
+consumption.isna().sum()
+
+consumption.interpolate(method='linear', inplace=True)
+#%%
+
+from workalendar.europe import Germany
+callWorkDayData = Germany()
+
+
+TempVarName = 'Temp_avg'
+
+consumption = consumption \
+    .assign(week = lambda x: x.index.isocalendar().week)  \
+    .assign(week = lambda x: np.where( x['week']==53, 1, x['week']))\
+    .assign(HDD  = lambda x: np.where( x[TempVarName] <= 15,
+                                 ( 18-x[TempVarName] ).round(1).astype(float), 0 ),
+            CDD  = lambda x: np.where( x[TempVarName] >= 24,
+                                 ( x[TempVarName]-21 ).round(1).astype(float), 0 ) )\
+    .assign(WorkDay = lambda x: x.index.to_series().transform(lambda y:\
+                              callWorkDayData.is_working_day(y)).astype(int) )
+
+
+
+
+##########################################################
+#%% Prepare data
+##########################################################
+
+# Select Main Data
+Dependent_Var = 'Consumption'
+
+Independent_Vars = ['Temp_avg',
+                    'windspeed_10m_max',
+                    'CDD',
+                    'WorkDay',
+#                   'day',
+                    'week'
+#                   'month'
+                   ]
+
+DummyForColumn = ['week']
+LagList = None
+
+#%%
+
+analysis_data = consumption.copy()
+test_date = '2022-06'
+
+# Prepare Data For ANN
+X, y =  DevideOnXandY_CreateDummies(analysis_data, 
+                                   DependentVar = Dependent_Var,
+                                   IndependentVar = Independent_Vars,
+                                   DummyForCol = DummyForColumn,
+                                   drop_first = False)
+
+X_Train_sld, y_Train_sld,\
+X_Test_sld, y_Test_sld,\
+scaler_X, scaler_y = \
+            PrepareDataForRegression(X, y, 
+                                     TestSplitInd = test_date,
+                                     ValSplitInd = None,     
+                                     ScalerType = 'MinMax',
+                                     ScalerRange = (0,1),                             
+                                     BatchSize = None,
+                                     WindowLength = 1)
+            
+            
+import tensorflow as tf
+
+y_Test = analysis_data.loc[y_Test_sld.index][[Dependent_Var]]
+
+
+##########################################################
+##########################################################
+#%% FIT MODEL - hyperparameter tuning
+##########################################################
+##########################################################
+
+# Define parameters set
+
+
+ann_param_grid = dict(epochs = [10,20,30,50,70,90,110],
+                      batch_size = [10,20,40, 60,80],
+                      model__loss = ['mean_squared_error'],
+                      model__optimizer = ['adam','nadam'],
+                      model__neurons_nr = [25, 50, 150, 200, 250],
+                      model__hidden_layers_nr = [1,2,3,4,5],
+                      model__input_shape = [(X_Train_sld.shape[1], )],
+                      model__add_batch_norm = [False, True],
+                      model__activation_fun = ['relu', 'LeakyReLU', 'elu', 'swish'],
+                      model__activation_out = ['linear'],
+                      model__dropout = [0.0, 0.1, 0.2, 0.3],
+                      model__init = ['glorot_uniform','normal'],
+                      model__regression_type = [True])
+
+#Final_Model_01.reset_states()
+
+# Define wrapper
+wraped_ann_model = KerasRegressor(build_fn = create_feed_forward_model)
+
+# Search hyperparamers
+model_ann_random_search = RandomizedSearchCV(wraped_ann_model,\
+                                             ann_param_grid,\
+                                             n_iter = 20,\
+                                             cv = TimeSeriesSplit(n_splits=5).split(X_Train_sld),\
+                                             verbose=1,\
+                                             n_jobs=1)
+
+model_ann_random_search.fit( X_Train_sld, y_Train_sld )
+
+# Print the best parameters
+print("Best parameters found: ", model_ann_random_search.best_params_)
+
+###########################################
+#%% Test Set Prediction
+
+model_finall = model_ann_random_search.best_estimator_
+
+# Make prediction on test set
+yhat_Test_ANN, X_Test_ANN = \
+     MakeTSforecast(X_Test_sld,\
+                    Model = model_finall,\
+                    DependentVar = Dependent_Var,\
+                    Intecept = False,\
+                    LagsList = LagList,\
+                    Scaler_y = scaler_y,\
+                    Scaler_X = scaler_X,\
+                    Test_or_Forecast = 'Test')
+
+data_with_prediction= \
+    MakeANNfinalData(Model = model_finall,\
+                    Train_X_Scaled = X_Train_sld,\
+                    Val_X_Scaled = None,\
+                        Scaler_y= scaler_y,\
+                        MainDF = analysis_data,\
+                        yhat_Test_DF = None,\
+                        yhat_Forecast_DF = None)
+
+###########################################
+#%% Plot Fitted Data
+
+#CalculateR2andR2adjForSatModelsWithFormula(ConTest, MainVar, ConModelShort)
+
+print( 'MAE: ' + str(round( mean_absolute_error( y_Test, yhat_Test_ANN), 2) ))
+print( 'MAPE: ' + str(round( 100*mean_absolute_percentage_error( y_Test, yhat_Test_ANN), 2)) )
+print( 'RMSE: ' + str(round( np.sqrt(mean_squared_error( y_Test, yhat_Test_ANN)), 2) ))
+
+# plot
+pd.concat([ data_with_prediction[[Dependent_Var]],\
+            data_with_prediction[['Fitted-Train']],\
+             yhat_Test_ANN], axis=1).plot()     
+
+plt.ylabel('Demand', fontsize=14)
+plt.xlabel('Date', fontsize=14)
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+plt.title('Winter - test set', fontsize=20)
+plt.legend(fontsize=14)
+plt.grid()
+plt.rcParams['figure.figsize'] = [15, 10]
+plt.show()
+
+# %%
