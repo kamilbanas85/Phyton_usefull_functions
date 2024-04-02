@@ -214,9 +214,33 @@ def MakeLagedVariableNames(LagsRangeList = None, LagsDirectList = None):
     
     return LagedVarList
 
+#########################################################
+
+def make_laged_or_forwad_variable_names(LagsRangeList = None,\
+                                        LagsDirectList = None,\
+                                        lag_or_forward = 'lag'):
+
+    LagedVarList = {}
+    suffix = '_Lag'
+    if lag_or_forward == 'lag':
+        suffix = '_Lag'
+    elif lag_or_forward == 'forward':
+        suffix = '_Forward'
+        
+    
+    if (LagsRangeList):
+        for Var, Lags in LagsRangeList.items():
+            LagedVarList.update( { Var + suffix + str(Lag+1): Lag+1\
+                                    for Lag in range(Lags)} ) 
+                
+    if (LagsDirectList):
+        for Var, Lags in LagsDirectList.items():
+            LagedVarList.update( { Var + suffix + str(Lag): Lag\
+                                    for Lag in Lags} )
+    
+    return LagedVarList
 
 ##############################################################
-
 
 def PrepareLags(DataFrame, LagsList):
     
@@ -238,6 +262,28 @@ def PrepareLags(DataFrame, LagsList):
                                 
     return DF
 
+##############################################################
+
+
+def prepare_forwards_shift(DataFrame, forward_list):
+    
+    # LagsList is dictinary:
+    # LagsList = {Var1_LagNr:LagNr, Var1_LagNr:LagNr}
+    
+    DF = DataFrame.copy()
+    
+    if forward_list is not None:
+        for VarName, LagNr in forward_list.items():
+        
+            # Retrive Based Variable Name by substract '_Lag...'
+            # Set up Laged Values
+            VariableBase = re.sub(r'_Forward.+', '', VarName)
+            DF[VarName] = DF[VariableBase].shift(-LagNr)   
+          
+        #MaxLags =  max(forward_list.values())           
+        #DF = DF.iloc[ MaxLags: , : ]
+                                
+    return DF
 
 ##############################################################
 
