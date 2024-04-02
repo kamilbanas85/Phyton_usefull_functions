@@ -128,7 +128,7 @@ def MakeTSforecastLSTM_XwithDependentVar(Data_X,
   
 ############################################################################################
   
-ef MakeANNfinalData(Model,\
+def MakeANNfinalData(Model,\
                      Train_X_Scaled, Val_X_Scaled,\
                      Scaler_y,\
                      MainDF,\
