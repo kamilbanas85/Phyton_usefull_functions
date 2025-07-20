@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 
 
 from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import LSTM
 from tensorflow.keras.layers import BatchNormalization
@@ -63,13 +64,15 @@ def create_feed_forward_model(hidden_layers_nr = 1,
     
     ##############################################
     # 1 layer - imput layer
+    model.add(Input(shape=input_shape))
+
     if constraint_value is not None:
-        model.add(Dense(neurons_nr, input_shape = input_shape,\
+        model.add(Dense(neurons_nr, \
                         activation = activation_fun,\
                         kernel_initializer = init,\
                         kernel_constraint = MaxNorm(constraint_value) ) )
     else:
-        model.add(Dense(neurons_nr, input_shape = input_shape,\
+        model.add(Dense(neurons_nr,\
                         activation = activation_fun,\
                         kernel_initializer = init ) )
         
