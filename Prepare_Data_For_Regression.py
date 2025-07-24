@@ -95,10 +95,10 @@ def CreateDummyForColumns(DFwithoutDummy, DummyForColumns, drop_first=True):
     if DummyForColumns is not None:
         if is_list_of_strings(DummyForColumns):
             DF = pd.get_dummies(DF, columns = DummyForColumns,\
-                      prefix = [ colName + '_' for colName in DummyForColumns], drop_first=drop_first )
+                      prefix = [ colName + '_' for colName in DummyForColumns], drop_first=drop_first, dtype=int)
         else:
             DF = pd.get_dummies(DF, columns = [DummyForColumns],\
-                                prefix = [DummyForColumns + '_'], drop_first=drop_first )
+                                prefix = [DummyForColumns + '_'], drop_first=drop_first, dtype=int)
     
     return DF
 
